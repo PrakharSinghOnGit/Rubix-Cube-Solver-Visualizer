@@ -87,7 +87,7 @@ export function createCube(size) {
 
   // Set the size of each cubie and the gap between them
   cubieSize = 1;
-  gap = 0.05;
+  gap = 0.8;
 
   // Create the cubies
   createCubies();
@@ -108,7 +108,7 @@ function createCubies() {
   // Create materials for each face
   const materials = Array(6)
     .fill()
-    .map(() => new THREE.MeshLambertMaterial({ color: 0x333333 }));
+    .map(() => new THREE.MeshLambertMaterial({ color: 0x000000 }));
 
   // Create cubies
   for (let x = 0; x < cubeSize; x++) {
@@ -162,36 +162,36 @@ function colorCubie(cubie) {
 
   // Top face (White)
   if (y === cubeSize - 1) {
-    cubie.material[1].color.setHex(COLORS[state[0][cubeSize - 1 - z][x]]);
+    cubie.material[2].color.setHex(COLORS[state[0][z][x]]);
   }
 
   // Bottom face (Yellow)
   if (y === 0) {
-    cubie.material[0].color.setHex(COLORS[state[1][z][x]]);
+    cubie.material[3].color.setHex(COLORS[state[1][cubeSize - 1 - z][x]]);
   }
 
   // Front face (Red)
   if (z === cubeSize - 1) {
-    cubie.material[2].color.setHex(COLORS[state[2][cubeSize - 1 - y][x]]);
+    cubie.material[4].color.setHex(COLORS[state[2][cubeSize - 1 - y][x]]);
   }
 
   // Back face (Orange)
   if (z === 0) {
-    cubie.material[3].color.setHex(
+    cubie.material[5].color.setHex(
       COLORS[state[3][cubeSize - 1 - y][cubeSize - 1 - x]]
     );
   }
 
   // Left face (Blue)
   if (x === 0) {
-    cubie.material[4].color.setHex(COLORS[state[4][cubeSize - 1 - y][z]]);
+    cubie.material[1].color.setHex(
+      COLORS[state[4][cubeSize - 1 - y][cubeSize - 1 - z]]
+    );
   }
 
-  // Right face (Green)
+  // Right face (Blue)
   if (x === cubeSize - 1) {
-    cubie.material[5].color.setHex(
-      COLORS[state[5][cubeSize - 1 - y][cubeSize - 1 - z]]
-    );
+    cubie.material[0].color.setHex(COLORS[state[5][cubeSize - 1 - y][z]]);
   }
 }
 
