@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rubik's Cube Solver</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+</head>
+
+<body>
+    <header>
+        <h1>Rubik's Cube Solver</h1>
+        <nav>
+            <ul>
+                <li><a href="#cube">Cube</a></li>
+                <li><a href="#algorithms">Algorithms</a></li>
+                <li><a href="#benchmarks">Benchmarks</a></li>
+                <li><a href="#about">About</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main>
+        <section id="cube-section">
+            <div class="controls">
+                <div class="cube-size-selector">
+                    <label for="cube-size">Cube Size:</label>
+                    <select id="cube-size">
+                        <option value="2">2x2</option>
+                        <option value="3" selected>3x3</option>
+                        <option value="4">4x4</option>
+                        <option value="5">5x5</option>
+                    </select>
+                </div>
+                <div class="algorithm-selector">
+                    <label for="algorithm">Algorithm:</label>
+                    <select id="algorithm">
+                        <option value="brute-force">Brute Force (2x2 only)</option>
+                        <option value="lbl" selected>Layer-by-Layer</option>
+                        <option value="kociemba">Kociemba's Two-Phase</option>
+                        <option value="thistlethwaite">Thistlethwaite's</option>
+                        <option value="neural-network">Neural Network</option>
+                    </select>
+                </div>
+                <div class="action-buttons">
+                    <button id="scramble-btn">Scramble</button>
+                    <button id="solve-btn">Solve</button>
+                    <button id="reset-btn">Reset</button>
+                </div>
+            </div>
+            <div id="cube-container"></div>
+            <div class="solution-steps">
+                <h3>Solution Steps</h3>
+                <div id="solution-steps-container"></div>
+                <div class="playback-controls">
+                    <button id="prev-step">Previous</button>
+                    <button id="play-pause">Play</button>
+                    <button id="next-step">Next</button>
+                    <input type="range" id="playback-speed" min="1" max="10" value="5">
+                    <label for="playback-speed">Speed</label>
+                </div>
+            </div>
+        </section>
+
+        <section id="benchmarks-section">
+            <h2>Algorithm Benchmarks</h2>
+            <div class="benchmark-controls">
+                <button id="run-benchmark">Run Benchmark</button>
+                <select id="benchmark-cube-size">
+                    <option value="2">2x2</option>
+                    <option value="3" selected>3x3</option>
+                    <option value="4">4x4</option>
+                </select>
+                <select id="benchmark-scramble-count">
+                    <option value="10">10 scrambles</option>
+                    <option value="50">50 scrambles</option>
+                    <option value="100">100 scrambles</option>
+                </select>
+            </div>
+            <div class="benchmark-results">
+                <div class="chart-container">
+                    <canvas id="time-chart"></canvas>
+                </div>
+                <div class="chart-container">
+                    <canvas id="moves-chart"></canvas>
+                </div>
+                <table id="benchmark-table">
+                    <thead>
+                        <tr>
+                            <th>Algorithm</th>
+                            <th>Avg. Time (ms)</th>
+                            <th>Avg. Moves</th>
+                            <th>Success Rate</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Benchmark results will be inserted here -->
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <section id="about-section">
+            <h2>About Rubik's Cube Algorithms</h2>
+            <div class="algorithm-info">
+                <h3>Brute Force Approach</h3>
+                <p>The brute force approach tries all possible move sequences until a solution is found. Due to the
+                    enormous search space (approximately 43 quintillion positions for a 3x3 cube), this approach is only
+                    feasible for 2x2 cubes or for finding optimal solutions for specific cases.</p>
+
+                <h3>Layer-by-Layer (LBL) Method</h3>
+                <p>The Layer-by-Layer method solves the cube one layer at a time, typically starting with the bottom
+                    layer, then the middle layer, and finally the top layer. This method is intuitive and commonly used
+                    by human solvers.</p>
+
+                <h3>Kociemba's Two-Phase Algorithm</h3>
+                <p>Kociemba's algorithm divides the solution into two phases: first reducing the cube to a subgroup
+                    where only specific moves are needed, then solving within that subgroup. This algorithm can find
+                    near-optimal solutions for 3x3 cubes.</p>
+
+                <h3>Thistlethwaite's Algorithm</h3>
+                <p>Thistlethwaite's algorithm breaks down the solution into four stages, each reducing the cube to a
+                    smaller subgroup. This approach significantly reduces the search space and can find solutions with a
+                    reasonable number of moves.</p>
+
+                <h3>Neural Network Approach</h3>
+                <p>This approach uses machine learning techniques to learn solving strategies from examples or through
+                    reinforcement learning. While still experimental, neural networks show promise in developing
+                    efficient solving strategies.</p>
+            </div>
+
+            <div class="real-world-applications">
+                <h3>Real-World Applications</h3>
+                <p>The algorithms used to solve Rubik's Cubes have applications beyond the puzzle itself:</p>
+                <ul>
+                    <li><strong>AI and Search Algorithms:</strong> The techniques used to navigate the vast state space
+                        of a Rubik's Cube are applicable to other complex search problems.</li>
+                    <li><strong>Robotics:</strong> The manipulation sequences and pattern recognition used in cube
+                        solving inform robotic movement planning and object manipulation.</li>
+                    <li><strong>Logistics and Optimization:</strong> The group theory and state-space reduction
+                        techniques have applications in scheduling, routing, and other optimization problems.</li>
+                    <li><strong>Parallel Computing:</strong> Distributing the search for Rubik's Cube solutions
+                        demonstrates principles of parallel algorithm design that apply to other computationally
+                        intensive tasks.</li>
+                </ul>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <p>&copy; 2023 Rubik's Cube Solver Project</p>
+    </footer>
+</body>
+
+</html>
