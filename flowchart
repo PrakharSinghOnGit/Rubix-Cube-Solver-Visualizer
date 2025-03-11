@@ -1,0 +1,53 @@
+flowchart TD
+    Start([Start Layer Rotation]) --> InputCheck{Check Inputs:<br>layer, axis, clockwise}
+    
+    InputCheck -->|Invalid| Error[Throw Error:<br>Invalid layer or axis]
+    InputCheck -->|Valid| AxisCheck{Which axis?}
+    
+    AxisCheck -->|Y-Axis| YAxis[Y-Axis<br>Horizontal Layer Rotation]
+    AxisCheck -->|X-Axis| XAxis[X-Axis<br>Vertical Layer Rotation]
+    AxisCheck -->|Z-Axis| ZAxis[Z-Axis<br>Depth Layer Rotation]
+    
+    YAxis --> YOuterCheck{Is it an<br>outer layer?}
+    YOuterCheck -->|layer = 0| YTopFace[Rotate U Face<br>clockwise direction]
+    YOuterCheck -->|layer = N-1| YBottomFace[Rotate D Face<br>opposite direction]
+    YOuterCheck --> YAdjacent[Rotate Adjacent<br>Face Rows]
+    YTopFace --> YAdjacent
+    YBottomFace --> YAdjacent
+    
+    YAdjacent --> YDirection{Direction?}
+    
+    YDirection -->|Clockwise| YClockwise["1. Save F row<br>2. F ← L<br>3. L ← B (reversed)<br>4. B ← R (reversed)<br>5. R ← saved F"]
+    YDirection -->|Counter-clockwise| YCounterClockwise["1. Save F row<br>2. F ← R<br>3. R ← B (reversed)<br>4. B ← L (reversed)<br>5. L ← saved F"]
+    
+    XAxis --> XOuterCheck{Is it an<br>outer layer?}
+    XOuterCheck -->|layer = 0| XLeftFace[Rotate L Face<br>opposite direction]
+    XOuterCheck -->|layer = N-1| XRightFace[Rotate R Face<br>clockwise direction]
+    XOuterCheck --> XAdjacent[Rotate Adjacent<br>Face Columns]
+    XLeftFace --> XAdjacent
+    XRightFace --> XAdjacent
+    
+    XAdjacent --> XDirection{Direction?}
+    
+    XDirection -->|Clockwise| XClockwise["1. Save U column<br>2. U ← B (reversed)<br>3. B ← D (reversed)<br>4. D ← F<br>5. F ← saved U"]
+    XDirection -->|Counter-clockwise| XCounterClockwise["1. Save U column<br>2. U ← F<br>3. F ← D (reversed)<br>4. D ← B (reversed)<br>5. B ← saved U"]
+    
+    ZAxis --> ZOuterCheck{Is it an<br>outer layer?}
+    ZOuterCheck -->|layer = 0| ZFrontFace[Rotate F Face<br>clockwise direction]
+    ZOuterCheck -->|layer = N-1| ZBackFace[Rotate B Face<br>opposite direction]
+    ZOuterCheck --> ZAdjacent[Rotate Adjacent<br>Face Elements]
+    ZFrontFace --> ZAdjacent
+    ZBackFace --> ZAdjacent
+    
+    ZAdjacent --> ZDirection{Direction?}
+    
+    ZDirection -->|Clockwise| ZClockwise["1. Save U row<br>2. U ← L (column, reversed)<br>3. L ← D (row, reversed)<br>4. D ← R (column, reversed)<br>5. R ← saved U (reversed)"]
+    ZDirection -->|Counter-clockwise| ZCounterClockwise["1. Save U row<br>2. U ← R (column, reversed)<br>3. R ← D (row)<br>4. D ← L (column, reversed)<br>5. L ← saved U"]
+    
+    YClockwise --> End([End Rotation])
+    YCounterClockwise --> End
+    XClockwise --> End
+    XCounterClockwise --> End
+    ZClockwise --> End
+    ZCounterClockwise --> End
+    Error --> EndError([End With Error])

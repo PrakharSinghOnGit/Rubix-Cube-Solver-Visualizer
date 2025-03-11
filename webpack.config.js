@@ -14,8 +14,16 @@ module.exports = {
     static: "./dist",
     hot: true,
   },
+  resolve: {
+    extensions: [".ts", ".js"],
+  },
   module: {
     rules: [
+      {
+        test: /\.ts$/,
+        use: "ts-loader",
+        exclude: /node_modules/,
+      },
       {
         test: /\.js$/,
         exclude: /node_modules/,
