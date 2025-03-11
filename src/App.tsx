@@ -1,61 +1,18 @@
 import React, { useState } from "react";
 import "./App.css";
 import CubeView from "./components/CubeView";
-import LeftPanel from "./components/LeftPanel";
-import RightPanel from "./components/RightPanel";
-import { CubeState, Move } from "./types";
-import {
-  createInitialCubeState,
-  applyMove,
-  scrambleCube,
-} from "./utils/cubeLogic";
+import { CubeType } from "./types";
+import { Cube } from "./core/cube";
 
 function App() {
-  const [cubeSize, setCubeSize] = useState<number>(3);
-  const [cubeState, setCubeState] = useState<CubeState>(
-    createInitialCubeState(cubeSize)
-  );
-  const [moveHistory, setMoveHistory] = useState<Move[]>([]);
-
-  const handleSizeChange = (size: number) => {
-    setCubeSize(size);
-    setCubeState(createInitialCubeState(size));
-    setMoveHistory([]);
-  };
-
-  const handleReset = () => {
-    setCubeState(createInitialCubeState(cubeSize));
-    setMoveHistory([]);
-  };
-
-  const handleScramble = () => {
-    const { newState, moves } = scrambleCube(cubeState, cubeSize);
-    setCubeState(newState);
-    setMoveHistory(moves);
-  };
-
-  const handleMove = (move: Move) => {
-    const newState = applyMove(cubeState, move);
-    setCubeState(newState);
-    setMoveHistory([...moveHistory, move]);
-  };
+  const [size, setSize] = useState(1);
+  const [cube, setCube] = useState(new Cube(size));
 
   return (
     <div className="app">
-      <LeftPanel
-        cubeSize={cubeSize}
-        onSizeChange={handleSizeChange}
-        onReset={handleReset}
-        onScramble={handleScramble}
-      />
       <div className="main-view">
-        <CubeView
-          cubeState={cubeState}
-          cubeSize={cubeSize}
-          onMove={handleMove}
-        />
+        <CubeView cubeState={cube.getState()} />
       </div>
-      <RightPanel moveHistory={moveHistory} />
     </div>
   );
 }

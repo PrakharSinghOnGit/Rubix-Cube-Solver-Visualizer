@@ -1,18 +1,19 @@
 {
-  "name": "rubix-cube-visual",
+  "name": "rubiks-cube-solver",
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "@react-three/drei": "^9.122.0",
+    "@react-three/fiber": "^8.18.0",
+    "@types/react": "^18.2.37",
+    "@types/react-dom": "^18.2.15",
+    "@types/three": "^0.159.0",
+    "chalk": "^5.4.1",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "three": "^0.159.0",
-    "@react-three/fiber": "^8.15.11",
-    "@react-three/drei": "^9.88.17",
-    "@types/three": "^0.159.0",
     "react-scripts": "5.0.1",
-    "typescript": "^4.9.5",
-    "@types/react": "^18.2.37",
-    "@types/react-dom": "^18.2.15"
+    "three": "^0.159.0",
+    "typescript": "^4.9.5"
   },
   "scripts": {
     "start": "react-scripts start",
