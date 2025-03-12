@@ -14,3 +14,5 @@ export function handleResize(
     window.removeEventListener("resize", updateSize);
   };
 }
+
+export function glowEdges(e: boolean) {}

@@ -1,11 +1,21 @@
 import React from "react";
-import styles from "../App.module.css";
 import "./Panel.css";
 
-export default function LeftPanel() {
+export default function LeftPanel({
+  setCubeSize,
+}: {
+  setCubeSize: (size: number) => void;
+}) {
   return (
-    <div className={`${styles.panal} ${styles.leftPan}`}>
-      <h1 className="title">Rubix Cube Solver</h1>
+    <div>
+      <input
+        type="number"
+        name="cubesize"
+        id="cubesize"
+        onChange={(e) => setCubeSize(parseInt(e.target.value))}
+        placeholder="Enter cube size"
+        defaultValue={3}
+      />
     </div>
   );
 }

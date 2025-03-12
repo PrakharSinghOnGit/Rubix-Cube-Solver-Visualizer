@@ -1,113 +1,62 @@
-import React, { useRef } from "react";
+import { Canvas, useThree } from "@react-three/fiber";
+import { OrbitControls } from "@react-three/drei";
 import { CubeType } from "../types";
-import P5 from "p5";
-import { useEffect } from "react";
 import { FACE_COLORS } from "../types";
 
 export default function CubeView2d({ cubeState }: { cubeState: CubeType }) {
-  const canvasRef = useRef<HTMLDivElement>(null);
+  return (
+    <Canvas
+      style={{ width: "100%", height: "100%" }}
+      orthographic
+      camera={{
+        zoom: 90,
+        position: [0, 0, 100],
+      }}
+    >
+      <ambientLight intensity={0.5} />
+      <pointLight position={[10, 10, 10]} />
+      <CubeProjection cubeState={cubeState} />
+      <OrbitControls enablePan={true} enableZoom={true} enableRotate={false} />
+    </Canvas>
+  );
+}
 
-  useEffect(() => {
-    let p5Instance: P5;
+function CubeProjection({ cubeState }: { cubeState: CubeType }) {
+  const { size } = cubeState;
+  const cellSize = 0.3;
+  const gap = 0.05;
+  const faceSize = size * (cellSize + gap);
+  const yOff =
+    cubeState.size / 2 != 0
+      ? (cubeState.size - 1) / 2
+      : cubeState.size / 2 - 1 + 0.5;
+  const drawFace = (x: number, y: number, face: string[][]) => {
+    return face.map((row, i) =>
+      row.map((color, j) => (
+        <mesh
+          key={`${i}-${j}`}
+          position={[
+            x + j * (cellSize + gap) + (cellSize + gap) / 2,
+            y - i * (cellSize + gap) + (cellSize + gap) * yOff,
+            0,
+          ]}
+        >
+          <planeGeometry args={[cellSize, cellSize]} />
+          <meshBasicMaterial color={FACE_COLORS[color]} />
+        </mesh>
+      ))
+    );
+  };
 
-    const sketch = (p: P5) => {
-      let zoom = 1;
-      let panX = 0,
-        panY = 0;
-      let isDragging = false;
-      let lastMouseX = 0,
-        lastMouseY = 0;
-
-      const n = cubeState.size;
-      const cellSize = 50;
-      const gap = 5;
-      const faceSize = n * (cellSize + gap);
-
-      p.setup = () => {
-        p.createCanvas(600, 400).parent(canvasRef.current!);
-        p.rectMode(p.CORNER);
-      };
-
-      p.draw = () => {
-        p.background(30);
-        p.translate(p.width / 2 + panX, p.height / 2 + panY);
-        p.scale(zoom);
-        drawCubeProjection();
-      };
-
-      function drawFace(x: number, y: number, face: string[][]) {
-        for (let i = 0; i < n; i++) {
-          for (let j = 0; j < n; j++) {
-            p.fill(FACE_COLORS[face[i][j]]);
-            p.stroke(0);
-            p.rect(
-              x + j * (cellSize + gap),
-              y + i * (cellSize + gap),
-              cellSize,
-              cellSize
-            );
-          }
-        }
-      }
-
-      function drawCubeProjection() {
-        const startX = -faceSize * 1.5;
-        const startY = -faceSize * 1.5;
-
-        drawFace(startX + faceSize, startY, cubeState.u);
-        drawFace(startX, startY + faceSize, cubeState.l);
-        drawFace(startX + faceSize, startY + faceSize, cubeState.f);
-        drawFace(startX + 2 * faceSize, startY + faceSize, cubeState.r);
-        drawFace(startX + faceSize, startY + 2 * faceSize, cubeState.d);
-        drawFace(startX + 3 * faceSize, startY + faceSize, cubeState.b);
-      }
-
-      p.mousePressed = () => {
-        isDragging = true;
-        lastMouseX = p.mouseX;
-        lastMouseY = p.mouseY;
-      };
-
-      p.mouseReleased = () => {
-        isDragging = false;
-      };
-
-      p.mouseDragged = () => {
-        if (
-          p.mouseX > 0 &&
-          p.mouseX < p.width &&
-          p.mouseY > 0 &&
-          p.mouseY < p.height
-        ) {
-          if (isDragging) {
-            panX += p.mouseX - lastMouseX;
-            panY += p.mouseY - lastMouseY;
-            lastMouseX = p.mouseX;
-            lastMouseY = p.mouseY;
-          }
-        }
-      };
-
-      p.mouseWheel = (event: any) => {
-        if (
-          p.mouseX > 0 &&
-          p.mouseX < p.width &&
-          p.mouseY > 0 &&
-          p.mouseY < p.height
-        ) {
-          zoom *= event.delta > 0 ? 0.9 : 1.1;
-        }
-      };
-    };
-
-    if (canvasRef.current) {
-      p5Instance = new P5(sketch);
-    }
-
-    return () => {
-      if (p5Instance) p5Instance.remove();
-    };
-  }, [cubeState]);
-
-  return <div ref={canvasRef} />;
+  return (
+    <>
+      {/* Faces */}
+      {drawFace(-faceSize, faceSize, cubeState.u)} // Top
+      {drawFace(-faceSize * 2, 0, cubeState.l)} // Left
+      {drawFace(-faceSize, 0, cubeState.f)} // Front
+      {drawFace(0, 0, cubeState.r)} // Right
+      {drawFace(-faceSize, -faceSize, cubeState.d)} // Bottom
+      {drawFace(faceSize, 0, cubeState.b)} // Back
+    </>
+  );
 }

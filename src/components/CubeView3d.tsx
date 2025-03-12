@@ -12,27 +12,13 @@ import { useEffect, useRef } from "react";
 export default function CubeView3d({ cubeState }: { cubeState: CubeType }) {
   const canvasRef = useRef<HTMLDivElement>(null);
   const camera = new THREE.PerspectiveCamera();
-  const controlsRef = useRef<any>(null);
 
-  useEffect(() => {
-    function enableControls(event: MouseEvent) {
-      if (
-        canvasRef.current &&
-        canvasRef.current.contains(event.target as Node)
-      ) {
-        controlsRef.current.enabled = true;
-      } else {
-        controlsRef.current.enabled = false;
-      }
-    }
-    document.addEventListener("mousemove", enableControls);
-    return () => document.removeEventListener("mousemove", enableControls);
-  }, []);
-
+  camera.aspect = (window.innerWidth * 0.5) / (window.innerHeight * 0.6);
+  camera.updateProjectionMatrix();
   let [x, y, z] = [
-    cubeState.size * 1.1,
-    cubeState.size * 1.1,
-    cubeState.size * 1.1,
+    cubeState.size * 1.4,
+    cubeState.size * 1.4,
+    cubeState.size * 1.4,
   ];
   camera.position.set(x, y, z);
   const GAP = 0.05;
@@ -109,7 +95,13 @@ export default function CubeView3d({ cubeState }: { cubeState: CubeType }) {
   }
 
   return (
-    <div ref={canvasRef}>
+    <div
+      ref={canvasRef}
+      style={{
+        width: window.innerWidth * 0.5,
+        height: window.innerHeight * 0.6,
+      }}
+    >
       <Canvas camera={camera}>
         <Face size={cubeState.size} face={"b"} colors={cubeState.b} />
         <Face size={cubeState.size} face={"f"} colors={cubeState.f} />
@@ -118,13 +110,7 @@ export default function CubeView3d({ cubeState }: { cubeState: CubeType }) {
         <Face size={cubeState.size} face={"l"} colors={cubeState.l} />
         <Face size={cubeState.size} face={"r"} colors={cubeState.r} />
         <ambientLight intensity={2} />
-        {/* <directionalLight position={[0, 5, 5]} color="white" /> */}
-        <OrbitControls
-          enablePan={true}
-          enableZoom={true}
-          enableRotate={true}
-          ref={controlsRef}
-        />
+        <OrbitControls enablePan={true} enableZoom={true} enableRotate={true} />
       </Canvas>
     </div>
   );
