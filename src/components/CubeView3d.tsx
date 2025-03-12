@@ -7,9 +7,28 @@ import {
   FACE_ROTATIONS,
   CubeType,
 } from "../types";
+import { useEffect, useRef } from "react";
 
-export default function App({ cubeState }: { cubeState: CubeType }) {
-  let camera = new THREE.PerspectiveCamera();
+export default function CubeView3d({ cubeState }: { cubeState: CubeType }) {
+  const canvasRef = useRef<HTMLDivElement>(null);
+  const camera = new THREE.PerspectiveCamera();
+  const controlsRef = useRef<any>(null);
+
+  useEffect(() => {
+    function enableControls(event: MouseEvent) {
+      if (
+        canvasRef.current &&
+        canvasRef.current.contains(event.target as Node)
+      ) {
+        controlsRef.current.enabled = true;
+      } else {
+        controlsRef.current.enabled = false;
+      }
+    }
+    document.addEventListener("mousemove", enableControls);
+    return () => document.removeEventListener("mousemove", enableControls);
+  }, []);
+
   let [x, y, z] = [
     cubeState.size * 1.1,
     cubeState.size * 1.1,
@@ -57,7 +76,7 @@ export default function App({ cubeState }: { cubeState: CubeType }) {
         rotation={new THREE.Euler(...rot)}
       >
         <planeGeometry args={[1, 1]} />
-        <meshStandardMaterial color={"#" + color} />
+        <meshStandardMaterial color={color} />
       </mesh>
     );
   }
@@ -90,16 +109,23 @@ export default function App({ cubeState }: { cubeState: CubeType }) {
   }
 
   return (
-    <Canvas camera={camera}>
-      <Face size={cubeState.size} face={"b"} colors={cubeState.b} />
-      <Face size={cubeState.size} face={"f"} colors={cubeState.f} />
-      <Face size={cubeState.size} face={"u"} colors={cubeState.u} />
-      <Face size={cubeState.size} face={"d"} colors={cubeState.d} />
-      <Face size={cubeState.size} face={"l"} colors={cubeState.l} />
-      <Face size={cubeState.size} face={"r"} colors={cubeState.r} />
-      <ambientLight intensity={2} />
-      {/* <directionalLight position={[0, 5, 5]} color="white" /> */}
-      <OrbitControls enablePan={true} enableZoom={true} enableRotate={true} />
-    </Canvas>
+    <div ref={canvasRef}>
+      <Canvas camera={camera}>
+        <Face size={cubeState.size} face={"b"} colors={cubeState.b} />
+        <Face size={cubeState.size} face={"f"} colors={cubeState.f} />
+        <Face size={cubeState.size} face={"u"} colors={cubeState.u} />
+        <Face size={cubeState.size} face={"d"} colors={cubeState.d} />
+        <Face size={cubeState.size} face={"l"} colors={cubeState.l} />
+        <Face size={cubeState.size} face={"r"} colors={cubeState.r} />
+        <ambientLight intensity={2} />
+        {/* <directionalLight position={[0, 5, 5]} color="white" /> */}
+        <OrbitControls
+          enablePan={true}
+          enableZoom={true}
+          enableRotate={true}
+          ref={controlsRef}
+        />
+      </Canvas>
+    </div>
   );
 }

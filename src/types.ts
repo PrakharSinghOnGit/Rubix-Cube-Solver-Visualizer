@@ -8,13 +8,13 @@ export type CubeType = {
   b: string[][];
 };
 
-export const FACE_COLORS = {
-  w: "ffffff", // White
-  r: "ff0000", // Red
-  o: "ff6a00", // Orange
-  b: "0000ff", // Blue
-  g: "00ff00", // Green
-  y: "fcba03", // Yellow
+export const FACE_COLORS: Record<string, string> = {
+  w: "#ffffff", // White
+  r: "#ff0000", // Red
+  o: "#ff6a00", // Orange
+  b: "#0000ff", // Blue
+  g: "#00ff00", // Green
+  y: "#fcba03", // Yellow
 };
 
 export type FaceType = keyof typeof FACE_COLORS;

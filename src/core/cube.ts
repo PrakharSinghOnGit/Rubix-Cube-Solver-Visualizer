@@ -109,6 +109,3 @@ export class Cube {
     });
   }
 }
-
-const cube = new Cube(5);
-cube.printCube();
