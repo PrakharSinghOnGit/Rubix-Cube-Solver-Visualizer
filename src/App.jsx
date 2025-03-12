@@ -9,7 +9,7 @@ import { Cube } from "./core/cube";
 import Header from "./components/Header";
 
 function App() {
-  const [size, setSize] = useState(10);
+  const [size, setSize] = useState(3);
   const [cube, setCube] = useState(() => new Cube(size));
   useEffect(() => {
     setCube(new Cube(size));
@@ -34,7 +34,7 @@ function App() {
             </Panel>
           </PanelGroup>
         </Panel>
-        <PanelResizeHandle className={styles.mover} />
+        <PanelResizeHandle className={styles.moverV} />
         <Panel minSize={50} defaultSize={50} maxSize={50}>
           <PanelGroup direction="vertical">
             <Panel
@@ -43,6 +43,9 @@ function App() {
               maxSize={40}
               className={styles.renderContainer}
             >
+              <div className={styles.rendererLabel}>
+                <h3>2D Cube Projection</h3>
+              </div>
               <CubeView2d cubeState={cube.getState()} />
             </Panel>
             <PanelResizeHandle
@@ -55,12 +58,15 @@ function App() {
               maxSize={60}
               className={styles.renderContainer}
             >
+              <div className={styles.rendererLabel}>
+                <h3>3D Cube Projection</h3>
+              </div>
               <CubeView3d cubeState={cube.getState()} />
             </Panel>
           </PanelGroup>
         </Panel>
         <PanelResizeHandle
-          className={styles.mover}
+          className={styles.moverV}
           hitAreaMargins={{ fine: 10 }}
         />
         <Panel minSize={15} defaultSize={30}>

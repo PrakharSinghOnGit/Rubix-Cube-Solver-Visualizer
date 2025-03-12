@@ -29,16 +29,6 @@ body{
   padding: var(--gap) 0;
 }
 
-.cubeContainer {
-  flex-grow: 1;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  /* align-items: center; */
-  position: relative;
-  margin: var(--gap);
-}
-
 .renderContainer {
   background-color: var(--frontground);
   height: 100%;
@@ -49,6 +39,7 @@ body{
   flex-direction: column;
   justify-content: center;
   align-items: center;
+  position: relative;
 }
 
 .header {
@@ -76,18 +67,21 @@ body{
   border-radius: 0 var(--borderRadius) var(--borderRadius) 0;
 }
 
-.mover, .moverH {
-  background-color: transparent
-}
-
-.mover:active, .moverH:active {
-  border-radius: var(--borderRadius);
-}
-
-.mover {
+.moverV {
   width: var(--gap);
 }
 
 .moverH {
  height: var(--gap);
+}
+
+.rendererLabel {
+  position: absolute;
+  left: 0;
+  top: 0;
+  padding: var(--gap);
+  border-top: 3px solid var(--frontground);
+  border-left: 3px solid var(--frontground);
+  background-color: var(--background);
+  border-radius: var(--borderRadius) 0;
 }

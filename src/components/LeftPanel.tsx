@@ -1,5 +1,4 @@
 import React from "react";
-import "./Panel.css";
 
 export default function LeftPanel({
   setCubeSize,
