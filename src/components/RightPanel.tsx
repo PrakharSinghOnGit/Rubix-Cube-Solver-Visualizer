@@ -1,8 +1,8 @@
 import React from "react";
-import styles from "./Panel.module.css";
+import styles from "../App.module.css";
 
 const RightPanel = () => {
-  return <div className={`${styles.container} ${styles.rightCon}`}></div>;
+  return <div className={`${styles.panal} ${styles.rightPan}`}></div>;
 };
 
 export default RightPanel;
