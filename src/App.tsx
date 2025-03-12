@@ -14,8 +14,15 @@ function App() {
     <div className={styles.app}>
       <LeftPanel />
       <div className={styles.cubeContainer}>
-        <CubeView3d cubeState={cube.getState()} />
-        <CubeView2d cubeState={cube.getState()} />
+        <div className={styles.renderContainer}>
+          {/* <CubeView3d cubeState={cube.getState()} /> */}
+        </div>
+        <div
+          style={{ marginTop: "var(--gap)" }}
+          className={styles.renderContainer}
+        >
+          {/* <CubeView2d cubeState={cube.getState()} /> */}
+        </div>
       </div>
       <RightPanel />
     </div>
