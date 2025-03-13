@@ -114,7 +114,10 @@ function App() {
             >
               <Header />
             </Panel>
-            <PanelResizeHandle className={styles.moverH} />
+            <PanelResizeHandle
+              hitAreaMargins={{ coarse: 1, fine: 2 }}
+              className={styles.moverH}
+            />
             <Panel
               minSize={25}
               maxSize={65}
@@ -134,6 +137,7 @@ function App() {
               />
             </Panel>
             <PanelResizeHandle
+              hitAreaMargins={{ coarse: 1, fine: 2 }}
               children={<ResizeHandle vertical={true} />}
               className={styles.moverH}
             />
@@ -144,6 +148,7 @@ function App() {
           </PanelGroup>
         </Panel>
         <PanelResizeHandle
+          hitAreaMargins={{ coarse: 1, fine: 2 }}
           children={<ResizeHandle />}
           className={styles.moverV}
         />
@@ -161,7 +166,7 @@ function App() {
             </Panel>
             <PanelResizeHandle
               className={styles.moverH}
-              hitAreaMargins={{ fine: 10, coarse: 10 }}
+              hitAreaMargins={{ fine: 1, coarse: 2 }}
             />
             <Panel
               minSize={60}
@@ -177,7 +182,7 @@ function App() {
         <PanelResizeHandle
           children={<ResizeHandle />}
           className={styles.moverV}
-          hitAreaMargins={{ fine: 10, coarse: 10 }}
+          hitAreaMargins={{ fine: 1, coarse: 2 }}
         />
         <Panel minSize={15}>
           <PanelGroup direction="vertical">
@@ -192,7 +197,7 @@ function App() {
             <PanelResizeHandle
               children={<ResizeHandle vertical={true} />}
               className={styles.moverH}
-              hitAreaMargins={{ fine: 10, coarse: 10 }}
+              hitAreaMargins={{ fine: 1, coarse: 2 }}
             />
             <Panel
               className={`${styles.panal} ${styles.rightPan}`}

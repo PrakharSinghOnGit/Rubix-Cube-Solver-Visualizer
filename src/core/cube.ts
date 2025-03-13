@@ -1,5 +1,4 @@
 import { CubeType, FACE_COLORS, FaceColorType } from "../types";
-import chalk from "chalk";
 
 export class Cube {
   size: number;
@@ -230,49 +229,6 @@ export class Cube {
       f: this.faces.f,
       b: this.faces.b,
     };
-  }
-
-  printCube() {
-    console.log("------------------------------");
-    const n = this.size;
-    const { u, d, l, r, f, b } = this.faces;
-
-    // Print top face
-    u.forEach((row) => {
-      console.log(
-        " ".repeat(n * 4) +
-          row
-            .map((r) => chalk.hex(FACE_COLORS[r as FaceColorType])("▇▇▇"))
-            .join(" ")
-      );
-    });
-
-    // Print middle faces (l, f, r, b)
-    for (let i = 0; i < n; i++) {
-      const left = l[i]
-        .map((r) => chalk.hex(FACE_COLORS[r as FaceColorType])("▇▇▇"))
-        .join(" ");
-      const front = f[i]
-        .map((r) => chalk.hex(FACE_COLORS[r as FaceColorType])("▇▇▇"))
-        .join(" ");
-      const right = r[i]
-        .map((r) => chalk.hex(FACE_COLORS[r as FaceColorType])("▇▇▇"))
-        .join(" ");
-      const back = b[i]
-        .map((r) => chalk.hex(FACE_COLORS[r as FaceColorType])("▇▇▇"))
-        .join(" ");
-      console.log(`${left} ${front} ${right} ${back}`);
-    }
-
-    // Print bottom face
-    d.forEach((row) => {
-      console.log(
-        " ".repeat(n * 4) +
-          row
-            .map((r) => chalk.hex(FACE_COLORS[r as FaceColorType])("▇▇▇"))
-            .join(" ")
-      );
-    });
   }
 }
 
