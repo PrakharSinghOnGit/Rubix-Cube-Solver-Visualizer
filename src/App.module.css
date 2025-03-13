@@ -12,6 +12,7 @@
   --borderRadius: 15px;
   --gap:10px;
   --borderWidth: 1px;
+  --glowCol:#0080ff;
 }
 
 body{
@@ -74,3 +75,14 @@ body{
  height: var(--gap);
 }
 
+.moverH, .moverV {
+  display:flex;
+  justify-content: center;
+  align-items: center;
+  overflow: visible;
+  z-index: 10;
+}
+
+.moverH:active, .moverV:active {
+  background-color: var(--glowCol);
+}

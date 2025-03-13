@@ -7,9 +7,10 @@ import { Cube } from "./core/cube";
 import Header from "./components/Header";
 import SettingsPanel from "./components/SettingsPanel";
 import SolverPanel from "./components/SolverPanel";
-import PanelLabel from "./components/utils/PanelLabel";
+import PanelLabel from "./components/ui/PanelLabel";
 import StatsPanel from "./components/StatsPanel";
 import LogsPanel from "./components/LogsPanel";
+import ResizeHandle from "./components/ui/ResizeHandle";
 
 function App() {
   const [size, setSize] = useState(3);
@@ -21,7 +22,7 @@ function App() {
   return (
     <div className={styles.app}>
       <PanelGroup direction="horizontal">
-        <Panel minSize={15} defaultSize={20} maxSize={30}>
+        <Panel minSize={10} defaultSize={10} maxSize={30}>
           <PanelGroup direction="vertical">
             <Panel
               minSize={13}
@@ -40,14 +41,21 @@ function App() {
               <PanelLabel title="Settings" left={true} />
               <SettingsPanel setCubeSize={setSize} />
             </Panel>
-            <PanelResizeHandle className={styles.moverH} />
+            <PanelResizeHandle
+              children={<ResizeHandle vertical={true} />}
+              className={styles.moverH}
+            />
             <Panel className={`${styles.panal} ${styles.leftPan}`}>
               <PanelLabel title="Solver" left={true} />
               <SolverPanel />
             </Panel>
           </PanelGroup>
         </Panel>
-        <PanelResizeHandle className={styles.moverV} />
+        <PanelResizeHandle
+          children={<ResizeHandle />}
+          className={styles.moverV}
+        />
+
         <Panel minSize={40} maxSize={40}>
           <PanelGroup direction="vertical">
             <Panel
@@ -75,10 +83,11 @@ function App() {
           </PanelGroup>
         </Panel>
         <PanelResizeHandle
+          children={<ResizeHandle />}
           className={styles.moverV}
           hitAreaMargins={{ fine: 10, coarse: 10 }}
         />
-        <Panel minSize={15} defaultSize={30}>
+        <Panel minSize={15}>
           <PanelGroup direction="vertical">
             <Panel
               className={`${styles.panal} ${styles.rightPan}`}
@@ -89,6 +98,7 @@ function App() {
               <StatsPanel />
             </Panel>
             <PanelResizeHandle
+              children={<ResizeHandle vertical={true} />}
               className={styles.moverH}
               hitAreaMargins={{ fine: 10, coarse: 10 }}
             />

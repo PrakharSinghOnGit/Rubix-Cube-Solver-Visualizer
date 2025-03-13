@@ -13,12 +13,10 @@ export default function CubeView3d({ cubeState }: { cubeState: CubeType }) {
   const canvasRef = useRef<HTMLDivElement>(null);
   const camera = new THREE.PerspectiveCamera();
 
-  camera.aspect = (window.innerWidth * 0.5) / (window.innerHeight * 0.6);
-  camera.updateProjectionMatrix();
   let [x, y, z] = [
-    cubeState.size * 1.4,
-    cubeState.size * 1.4,
-    cubeState.size * 1.4,
+    cubeState.size * 1.5,
+    cubeState.size * 1.5,
+    cubeState.size * 1.5,
   ];
   camera.position.set(x, y, z);
   const GAP = 0.05;
@@ -98,8 +96,8 @@ export default function CubeView3d({ cubeState }: { cubeState: CubeType }) {
     <div
       ref={canvasRef}
       style={{
-        width: window.innerWidth * 0.5,
-        height: window.innerHeight * 0.6,
+        width: "100%",
+        height: "100%",
       }}
     >
       <Canvas camera={camera}>

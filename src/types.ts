@@ -8,6 +8,9 @@ export type CubeType = {
   b: string[][];
 };
 
+export type FaceType = string[][];
+export type FaceNames = "u" | "d" | "l" | "r" | "f" | "b";
+
 export const FACE_COLORS: Record<string, string> = {
   w: "#ffffff", // White
   r: "#ff0000", // Red
@@ -17,7 +20,9 @@ export const FACE_COLORS: Record<string, string> = {
   y: "#fcba03", // Yellow
 };
 
-export type FaceType = keyof typeof FACE_COLORS;
+export const Zoom = [350, 180, 120, 90, 70, 55, 50, 43, 40, 35];
+
+export type FaceColorType = keyof typeof FACE_COLORS;
 
 export const FACE_POSITIONS = {
   f: { normal: [0, 0, 1], xAxis: [1, 0, 0], yAxis: [0, 1, 0] }, // Front

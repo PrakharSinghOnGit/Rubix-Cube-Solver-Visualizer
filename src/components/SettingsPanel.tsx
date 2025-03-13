@@ -6,7 +6,7 @@ export default function SettingsPanel({
   setCubeSize: (size: number) => void;
 }) {
   return (
-    <div>
+    <div style={{ paddingTop: "50px" }}>
       <input
         type="number"
         name="cubesize"

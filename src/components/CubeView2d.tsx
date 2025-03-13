@@ -1,7 +1,8 @@
 import { Canvas } from "@react-three/fiber";
 import { OrbitControls } from "@react-three/drei";
-import { CubeType } from "../types";
-import { FACE_COLORS } from "../types";
+import { CubeType, FACE_COLORS, Zoom } from "../types";
+import { useThree } from "@react-three/fiber";
+import { useEffect } from "react";
 
 export default function CubeView2d({ cubeState }: { cubeState: CubeType }) {
   return (
@@ -9,7 +10,6 @@ export default function CubeView2d({ cubeState }: { cubeState: CubeType }) {
       style={{ width: "100%", height: "100%" }}
       orthographic
       camera={{
-        zoom: 90,
         position: [0, 0, 100],
       }}
     >
@@ -30,6 +30,14 @@ export default function CubeView2d({ cubeState }: { cubeState: CubeType }) {
 }
 
 function CubeProjection({ cubeState }: { cubeState: CubeType }) {
+  const { camera } = useThree();
+  camera.zoom = Zoom[cubeState.size] ? Zoom[cubeState.size] : 33;
+
+  useEffect(() => {
+    camera.zoom = Zoom[cubeState.size] ? Zoom[cubeState.size] : 33;
+    camera.updateProjectionMatrix(); // Required to apply zoom changes
+  }, [cubeState.size, camera]);
+
   const { size } = cubeState;
   const cellSize = 0.3;
   const gap = 0.05;
