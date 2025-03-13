@@ -1,4 +1,4 @@
-import { Canvas } from "@react-three/fiber";
+import { Canvas, useThree } from "@react-three/fiber";
 import { OrbitControls } from "@react-three/drei";
 import * as THREE from "three";
 import {
@@ -7,18 +7,20 @@ import {
   FACE_ROTATIONS,
   CubeType,
 } from "../types";
-import { useRef } from "react";
+import { useRef, useEffect } from "react";
+
+function CameraSetup({ size }: { size: number }) {
+  const { camera } = useThree();
+
+  useEffect(() => {
+    camera.position.set(size, size, size);
+  }, [camera, size]);
+
+  return null;
+}
 
 export default function CubeView3d({ cubeState }: { cubeState: CubeType }) {
   const canvasRef = useRef<HTMLDivElement>(null);
-  const camera = new THREE.PerspectiveCamera();
-
-  let [x, y, z] = [
-    cubeState.size * 1.5,
-    cubeState.size * 1.5,
-    cubeState.size * 1.5,
-  ];
-  camera.position.set(x, y, z);
   const GAP = 0.05;
 
   function getStickerPosition(
@@ -96,11 +98,12 @@ export default function CubeView3d({ cubeState }: { cubeState: CubeType }) {
     <div
       ref={canvasRef}
       style={{
-        width: "100%",
-        height: "100%",
+        width: window.innerWidth * 0.5,
+        height: window.innerHeight * 0.6,
       }}
     >
-      <Canvas camera={camera}>
+      <Canvas>
+        <CameraSetup size={cubeState.size} />
         <Face size={cubeState.size} face={"b"} colors={cubeState.b} />
         <Face size={cubeState.size} face={"f"} colors={cubeState.f} />
         <Face size={cubeState.size} face={"u"} colors={cubeState.u} />
@@ -108,7 +111,16 @@ export default function CubeView3d({ cubeState }: { cubeState: CubeType }) {
         <Face size={cubeState.size} face={"l"} colors={cubeState.l} />
         <Face size={cubeState.size} face={"r"} colors={cubeState.r} />
         <ambientLight intensity={2} />
-        <OrbitControls enablePan={true} enableZoom={true} enableRotate={true} />
+        <OrbitControls
+          enablePan={true}
+          enableZoom={true}
+          enableRotate={true}
+          target={[0, 0, 0]}
+          minDistance={cubeState.size * 0.5}
+          maxDistance={cubeState.size * 3}
+          enableDamping={true}
+          dampingFactor={0.05}
+        />
       </Canvas>
     </div>
   );

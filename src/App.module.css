@@ -15,6 +15,7 @@
   --gap:10px;
   --borderWidth: 1px;
   --glowCol:#0080ff;
+  --primary:#0080ff
 }
 
 body{
@@ -91,4 +92,19 @@ body{
 
 .btn{
   width: 100%;
+  height: 40px;
+  color: var(--font);
+
+}
+
+.inp {
+  background-color: transparent;
+  border: none;
+  border: 2px solid var(--primary);
+  color: var(--font);
+  width: 30%;
+  border-radius: 5px;
+  text-align: center;
+  margin-right: 10px;
+  height: 40px;
 }

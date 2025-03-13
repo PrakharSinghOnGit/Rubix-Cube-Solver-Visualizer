@@ -1,4 +1,4 @@
-import { CubeType, FACE_COLORS, FaceType, FaceColorType } from "../types";
+import { CubeType, FACE_COLORS, FaceColorType } from "../types";
 import chalk from "chalk";
 
 export class Cube {
@@ -195,7 +195,29 @@ export class Cube {
   }
 
   scramble(count: number = 20) {
-    this.rotate(0, "Y", true);
+    const moves = this.generateScrambleMoves(count);
+    moves.forEach((move) => {
+      this.rotate(move.layer, move.axis, move.clockwise);
+      console.table({
+        Layer: move.layer,
+        Axis: move.axis,
+        Direction: move.clockwise ? "Clock" : "C Clock",
+      });
+    });
+  }
+
+  generateScrambleMoves(count: number = 20) {
+    const axes: ("X" | "Y" | "Z")[] = ["X", "Y", "Z"];
+    const moves = [];
+
+    for (let i = 0; i < count; i++) {
+      const layer = Math.floor(Math.random() * this.size);
+      const axis = axes[Math.floor(Math.random() * axes.length)];
+      const clockwise = Math.random() > 0.5;
+      moves.push({ layer, axis, clockwise });
+    }
+
+    return moves;
   }
 
   getState(): CubeType {

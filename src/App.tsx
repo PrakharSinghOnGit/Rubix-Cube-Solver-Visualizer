@@ -15,9 +15,92 @@ import ResizeHandle from "./components/ui/ResizeHandle";
 function App() {
   const [size, setSize] = useState(3);
   const [cube, setCube] = useState(() => new Cube(size));
+  const [isAnimating, setIsAnimating] = useState(false);
+  const [animationSpeed, setAnimationSpeed] = useState(200);
+  const animationRef = useRef<NodeJS.Timeout>();
+
   useEffect(() => {
     setCube(new Cube(size));
   }, [size]);
+
+  useEffect(() => {
+    return () => {
+      if (animationRef.current) {
+        clearTimeout(animationRef.current);
+      }
+    };
+  }, []);
+
+  const handleScramble = async (count: number) => {
+    if (isAnimating) return;
+
+    setIsAnimating(true);
+    const newCube = new Cube(size);
+    const moves = newCube.generateScrambleMoves(count);
+
+    for (let i = 0; i < moves.length; i++) {
+      const move = moves[i];
+      newCube.rotate(move.layer, move.axis, move.clockwise);
+
+      // Create a new cube instance with the updated state
+      const updatedCube = new Cube(size);
+      updatedCube.faces = {
+        u: newCube.faces.u,
+        d: newCube.faces.d,
+        l: newCube.faces.l,
+        r: newCube.faces.r,
+        f: newCube.faces.f,
+        b: newCube.faces.b,
+      };
+      setCube(updatedCube);
+
+      await new Promise((resolve) => {
+        animationRef.current = setTimeout(resolve, animationSpeed);
+      });
+    }
+
+    setIsAnimating(false);
+  };
+
+  const handleRotate = async (
+    layerIndex: number,
+    axis: "X" | "Y" | "Z",
+    clockwise: boolean
+  ) => {
+    if (isAnimating) return;
+
+    setIsAnimating(true);
+
+    // Rotate the specified layer
+    cube.rotate(layerIndex, axis, clockwise);
+
+    // Create a new cube instance with the updated state
+    const updatedCube = new Cube(size);
+    updatedCube.faces = {
+      u: cube.faces.u,
+      d: cube.faces.d,
+      l: cube.faces.l,
+      r: cube.faces.r,
+      f: cube.faces.f,
+      b: cube.faces.b,
+    };
+    setCube(updatedCube);
+
+    // Wait for the animation speed duration
+    await new Promise((resolve) => {
+      animationRef.current = setTimeout(resolve, animationSpeed);
+    });
+
+    setIsAnimating(false);
+  };
+
+  const handleReset = () => {
+    if (isAnimating) return;
+
+    // Create a new cube instance with the initial state
+    const resetCube = new Cube(size);
+    setCube(resetCube);
+  };
 
   return (
     <div className={styles.app}>
@@ -39,7 +122,16 @@ function App() {
               className={`${styles.panal} ${styles.leftPan}`}
             >
               <PanelLabel title="Settings" left={true} />
-              <SettingsPanel setCubeSize={setSize} size={size} />
+              <SettingsPanel
+                onReset={handleReset}
+                onRotate={handleRotate}
+                setCubeSize={setSize}
+                size={size}
+                onScramble={handleScramble}
+                isAnimating={isAnimating}
+                animationSpeed={animationSpeed}
+                setAnimationSpeed={setAnimationSpeed}
+              />
             </Panel>
             <PanelResizeHandle
               children={<ResizeHandle vertical={true} />}
