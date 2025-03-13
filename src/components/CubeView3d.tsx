@@ -7,7 +7,7 @@ import {
   FACE_ROTATIONS,
   CubeType,
 } from "../types";
-import { useEffect, useRef } from "react";
+import { useRef } from "react";
 
 export default function CubeView3d({ cubeState }: { cubeState: CubeType }) {
   const canvasRef = useRef<HTMLDivElement>(null);
@@ -77,7 +77,7 @@ export default function CubeView3d({ cubeState }: { cubeState: CubeType }) {
     colors: string[][];
   }) {
     let stickers = [];
-    const offset = (size - 1) / 2; // Center the grid
+    //const offset = (size - 1) / 2; // Center the grid
 
     for (let i = 0; i < size; i++) {
       for (let j = 0; j < size; j++) {

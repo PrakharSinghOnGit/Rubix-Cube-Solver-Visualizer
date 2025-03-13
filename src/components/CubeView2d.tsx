@@ -1,4 +1,4 @@
-import { Canvas, useThree } from "@react-three/fiber";
+import { Canvas } from "@react-three/fiber";
 import { OrbitControls } from "@react-three/drei";
 import { CubeType } from "../types";
 import { FACE_COLORS } from "../types";
@@ -16,7 +16,15 @@ export default function CubeView2d({ cubeState }: { cubeState: CubeType }) {
       <ambientLight intensity={0.5} />
       <pointLight position={[10, 10, 10]} />
       <CubeProjection cubeState={cubeState} />
-      <OrbitControls enablePan={true} enableZoom={true} enableRotate={false} />
+      <OrbitControls
+        enablePan={true}
+        enableZoom={true}
+        enableRotate={false}
+        mouseButtons={{
+          LEFT: 2, // Set LEFT click to pan (default is rotate)
+          RIGHT: 0, // Disable right-click rotation
+        }}
+      />
     </Canvas>
   );
 }
@@ -26,10 +34,11 @@ function CubeProjection({ cubeState }: { cubeState: CubeType }) {
   const cellSize = 0.3;
   const gap = 0.05;
   const faceSize = size * (cellSize + gap);
-  const yOff =
-    cubeState.size / 2 != 0
-      ? (cubeState.size - 1) / 2
-      : cubeState.size / 2 - 1 + 0.5;
+  // const yOff =
+  //   cubeState.size / 2 === 0
+  //     ? (cubeState.size - 1) / 2
+  //     : cubeState.size / 2 - 1 + 0.5;
+  const yOff = (cubeState.size - 1) / 2;
   const drawFace = (x: number, y: number, face: string[][]) => {
     return face.map((row, i) =>
       row.map((color, j) => (
@@ -50,13 +59,12 @@ function CubeProjection({ cubeState }: { cubeState: CubeType }) {
 
   return (
     <>
-      {/* Faces */}
-      {drawFace(-faceSize, faceSize, cubeState.u)} // Top
-      {drawFace(-faceSize * 2, 0, cubeState.l)} // Left
-      {drawFace(-faceSize, 0, cubeState.f)} // Front
-      {drawFace(0, 0, cubeState.r)} // Right
-      {drawFace(-faceSize, -faceSize, cubeState.d)} // Bottom
-      {drawFace(faceSize, 0, cubeState.b)} // Back
+      {drawFace(-faceSize, faceSize, cubeState.u)}
+      {drawFace(-faceSize * 2, 0, cubeState.l)}
+      {drawFace(-faceSize, 0, cubeState.f)}
+      {drawFace(0, 0, cubeState.r)}
+      {drawFace(-faceSize, -faceSize, cubeState.d)}
+      {drawFace(faceSize, 0, cubeState.b)}
     </>
   );
 }

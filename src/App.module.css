@@ -34,7 +34,6 @@ body{
   height: 100%;
   border: var(--borderWidth) solid var(--moverCol);
   border-radius: var(--borderRadius);
-  box-shadow: var(--shadow);
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -54,7 +53,7 @@ body{
   height: 100%;
   background-color: var(--frontground);
   border: var(--borderWidth) solid var(--moverCol);
-  box-shadow: var(--shadow);
+  position: relative;
 }
 
 .rightPan {
@@ -75,13 +74,3 @@ body{
  height: var(--gap);
 }
 
-.rendererLabel {
-  position: absolute;
-  left: 0;
-  top: 0;
-  padding: var(--gap);
-  border-top: 3px solid var(--frontground);
-  border-left: 3px solid var(--frontground);
-  background-color: var(--background);
-  border-radius: var(--borderRadius) 0;
-}

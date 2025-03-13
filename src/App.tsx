@@ -3,10 +3,13 @@ import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
 import styles from "./App.module.css";
 import CubeView3d from "./components/CubeView3d";
 import CubeView2d from "./components/CubeView2d";
-import LeftPanel from "./components/LeftPanel";
-import RightPanel from "./components/RightPanel";
 import { Cube } from "./core/cube";
 import Header from "./components/Header";
+import SettingsPanel from "./components/SettingsPanel";
+import SolverPanel from "./components/SolverPanel";
+import PanelLabel from "./components/utils/PanelLabel";
+import StatsPanel from "./components/StatsPanel";
+import LogsPanel from "./components/LogsPanel";
 
 function App() {
   const [size, setSize] = useState(3);
@@ -18,24 +21,34 @@ function App() {
   return (
     <div className={styles.app}>
       <PanelGroup direction="horizontal">
-        <Panel minSize={15} defaultSize={20}>
-          <PanelGroup>
-            <Panel className={`${styles.panal} ${styles.leftPan}`}>
+        <Panel minSize={15} defaultSize={20} maxSize={30}>
+          <PanelGroup direction="vertical">
+            <Panel
+              minSize={13}
+              maxSize={13}
+              className={`${styles.panal} ${styles.leftPan}`}
+            >
               <Header />
             </Panel>
             <PanelResizeHandle className={styles.moverH} />
             <Panel
-              minSize={85}
-              defaultSize={85}
-              maxSize={85}
+              minSize={25}
+              maxSize={65}
+              defaultSize={27}
               className={`${styles.panal} ${styles.leftPan}`}
             >
-              <LeftPanel setCubeSize={setSize} />
+              <PanelLabel title="Settings" left={true} />
+              <SettingsPanel setCubeSize={setSize} />
+            </Panel>
+            <PanelResizeHandle className={styles.moverH} />
+            <Panel className={`${styles.panal} ${styles.leftPan}`}>
+              <PanelLabel title="Solver" left={true} />
+              <SolverPanel />
             </Panel>
           </PanelGroup>
         </Panel>
         <PanelResizeHandle className={styles.moverV} />
-        <Panel minSize={50} defaultSize={50} maxSize={50}>
+        <Panel minSize={40} maxSize={40}>
           <PanelGroup direction="vertical">
             <Panel
               minSize={40}
@@ -43,14 +56,12 @@ function App() {
               maxSize={40}
               className={styles.renderContainer}
             >
-              <div className={styles.rendererLabel}>
-                <h3>2D Cube Projection</h3>
-              </div>
+              <PanelLabel title="2d Cube View" />
               <CubeView2d cubeState={cube.getState()} />
             </Panel>
             <PanelResizeHandle
               className={styles.moverH}
-              hitAreaMargins={{ fine: "10" }}
+              hitAreaMargins={{ fine: 10, coarse: 10 }}
             />
             <Panel
               minSize={60}
@@ -58,16 +69,14 @@ function App() {
               maxSize={60}
               className={styles.renderContainer}
             >
-              <div className={styles.rendererLabel}>
-                <h3>3D Cube Projection</h3>
-              </div>
+              <PanelLabel title="3d Cube View" />
               <CubeView3d cubeState={cube.getState()} />
             </Panel>
           </PanelGroup>
         </Panel>
         <PanelResizeHandle
           className={styles.moverV}
-          hitAreaMargins={{ fine: 10 }}
+          hitAreaMargins={{ fine: 10, coarse: 10 }}
         />
         <Panel minSize={15} defaultSize={30}>
           <PanelGroup direction="vertical">
@@ -75,15 +84,21 @@ function App() {
               className={`${styles.panal} ${styles.rightPan}`}
               minSize={25}
               defaultSize={65}
-            ></Panel>
+            >
+              <PanelLabel title="Algorithms" />
+              <StatsPanel />
+            </Panel>
             <PanelResizeHandle
               className={styles.moverH}
-              hitAreaMargins={{ fine: 10 }}
+              hitAreaMargins={{ fine: 10, coarse: 10 }}
             />
             <Panel
               className={`${styles.panal} ${styles.rightPan}`}
               minSize={25}
-            ></Panel>
+            >
+              <PanelLabel title="Logs" />
+              <LogsPanel />
+            </Panel>
           </PanelGroup>
         </Panel>
       </PanelGroup>
