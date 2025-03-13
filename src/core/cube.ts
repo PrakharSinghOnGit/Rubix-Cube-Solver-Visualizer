@@ -194,6 +194,10 @@ export class Cube {
     return newFace;
   }
 
+  scramble(count: number = 20) {
+    this.rotate(0, "Y", true);
+  }
+
   getState(): CubeType {
     return {
       size: this.size,

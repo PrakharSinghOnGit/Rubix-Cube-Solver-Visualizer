@@ -1,3 +1,5 @@
+
+
 *{
   margin: 0;
   padding: 0;
@@ -85,4 +87,8 @@ body{
 
 .moverH:active, .moverV:active {
   background-color: var(--glowCol);
+}
+
+.btn{
+  width: 100%;
 }

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
 import styles from "./App.module.css";
 import CubeView3d from "./components/CubeView3d";
@@ -39,7 +39,7 @@ function App() {
               className={`${styles.panal} ${styles.leftPan}`}
             >
               <PanelLabel title="Settings" left={true} />
-              <SettingsPanel setCubeSize={setSize} />
+              <SettingsPanel setCubeSize={setSize} size={size} />
             </Panel>
             <PanelResizeHandle
               children={<ResizeHandle vertical={true} />}
