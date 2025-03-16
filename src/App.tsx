@@ -17,7 +17,7 @@ function App() {
   const [cube, setCube] = useState(() => new Cube(size));
   const [isAnimating, setIsAnimating] = useState(false);
   const [animationSpeed, setAnimationSpeed] = useState(200);
-  const animationRef = useRef<NodeJS.Timeout>();
+  const animationRef = useRef<ReturnType<typeof setTimeout>>(undefined);
 
   useEffect(() => {
     setCube(new Cube(size));
@@ -103,9 +103,9 @@ function App() {
   };
 
   return (
-    <div className={styles.app}>
+    <div className="flex h-screen w-screen overflow-visible p-3 pr-0 pl-0">
       <PanelGroup direction="horizontal">
-        <Panel minSize={10} defaultSize={10} maxSize={30}>
+        <Panel minSize={15} maxSize={30}>
           <PanelGroup direction="vertical">
             <Panel
               minSize={13}
@@ -153,25 +153,26 @@ function App() {
           className={styles.moverV}
         />
 
-        <Panel minSize={40} maxSize={40}>
+        <Panel minSize={40} maxSize={60}>
           <PanelGroup direction="vertical">
             <Panel
-              minSize={40}
+              minSize={30}
               defaultSize={40}
-              maxSize={40}
+              maxSize={70}
               className={styles.renderContainer}
             >
               <PanelLabel title="2d Cube View" />
               <CubeView2d cubeState={cube.getState()} />
             </Panel>
             <PanelResizeHandle
+              children={<ResizeHandle vertical={true} />}
               className={styles.moverH}
               hitAreaMargins={{ fine: 1, coarse: 2 }}
             />
             <Panel
-              minSize={60}
+              minSize={30}
               defaultSize={60}
-              maxSize={60}
+              maxSize={70}
               className={styles.renderContainer}
             >
               <PanelLabel title="3d Cube View" />

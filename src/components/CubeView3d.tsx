@@ -98,8 +98,8 @@ export default function CubeView3d({ cubeState }: { cubeState: CubeType }) {
     <div
       ref={canvasRef}
       style={{
-        width: window.innerWidth * 0.5,
-        height: window.innerHeight * 0.6,
+        width: "100%",
+        height: "100%",
       }}
     >
       <Canvas>

@@ -1,30 +1,3 @@
-
-
-*{
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
-
-:root{
-  --background: #02040A;
-  --frontground: #171B22;
-  --font: #fff;
-  --borderCol:#b5b5b5;
-  --borderRadius: 15px;
-  --gap:10px;
-  --borderWidth: 1px;
-  --glowCol:#0080ff;
-  --primary:#0080ff
-}
-
-body{
-  /* todo - change font to link import */
-  font-family: 'cascadia code', sans-serif; 
-  background-color: var(--background);
-  color: var(--font);
-}
-
 .app {
   display: flex;
   height: 100vh;
@@ -46,7 +19,6 @@ body{
 }
 
 .header {
-  background-color: var(--frontground);
   background-color: var(--frontground);
   border-radius: 0 0 var(--borderRadius) var(--borderRadius);
   border: var(--borderWidth) solid var(--borderCol);

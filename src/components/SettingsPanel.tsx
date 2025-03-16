@@ -1,11 +1,18 @@
-import React, { useState } from "react";
-import Slider from "@mui/material/Slider";
-import { Typography, ButtonGroup, Switch } from "@mui/material";
-import Button from "@mui/material/Button";
-import ShuffleOnIcon from "@mui/icons-material/ShuffleOn";
-import Rotate90DegreesCwIcon from "@mui/icons-material/Rotate90DegreesCw";
-import RestartAltIcon from "@mui/icons-material/RestartAlt";
+import { useState } from "react";
 import NumberInp from "./ui/NumberInp";
+import SliderInp from "./ui/SliderInp";
+import Button from "./ui/Button";
+import ButtonGroup from "./ui/ButtonGroup";
+import Switch from "./ui/Switch";
+import {
+  Rotate90DegreesCw as Rotate90DegreesCwIcon,
+  Shuffle as ShuffleOnIcon,
+  RestartAlt as RestartAltIcon,
+  Pause as PauseIcon,
+  PlayArrow as PlayArrowIcon,
+  Input as InputIcon,
+} from "./ui/Icons";
+import InputCubeModal from "./InputCubeModal";
 
 export default function SettingsPanel({
   size,
@@ -34,27 +41,49 @@ export default function SettingsPanel({
   const [layerIndex, setLayerIndex] = useState(0);
   const [axis, setAxis] = useState<"X" | "Y" | "Z">("X");
   const [clockwise, setClockwise] = useState<boolean>(false);
+  const [isPaused, setIsPaused] = useState<boolean>(false);
+  const [showInputModal, setShowInputModal] = useState<boolean>(false);
+
+  const handlePauseToggle = () => {
+    setIsPaused(!isPaused);
+    // You'll need to implement the actual pause/resume logic elsewhere
+  };
 
   return (
-    <div className="p-4 mt-4">
-      <NumberInp
-        max={10}
-        min={2}
-        def={size}
-        steps={1}
-        label="Cube Size"
-        onChange={(newSize) => setCubeSize(newSize)}
-      />
+    <div className="p-6 mt-4">
+      <div className="flex flex-row justify-between items-center">
+        <NumberInp
+          max={10}
+          min={2}
+          def={size}
+          steps={1}
+          onChange={(newSize) => setCubeSize(newSize)}
+          label="Cube Size"
+        />
+
+        <Button
+          className="bg-purple-500 hover:bg-purple-600"
+          variant="contained"
+          startIcon={<InputIcon />}
+          onClick={() => setShowInputModal(true)}
+          disabled={isAnimating}
+        >
+          Input Cube
+        </Button>
+      </div>
 
       <div className="mt-5">
-        <Typography gutterBottom>Speed - {animationSpeed}ms</Typography>
-        <Slider
-          value={animationSpeed}
-          onChange={(_, value) => setAnimationSpeed(value as number)}
-          min={50}
+        <p>
+          Animation Delay -{" "}
+          {animationSpeed == 0 ? "Instant" : animationSpeed + "ms"}
+        </p>
+        <SliderInp
+          def={animationSpeed}
+          onChange={(value: number) => setAnimationSpeed(value as number)}
+          min={0}
           max={500}
-          step={50}
-          marks
+          steps={50}
+          label="Speed"
         />
       </div>
 
@@ -73,7 +102,7 @@ export default function SettingsPanel({
             }
             disabled={isAnimating}
           />
-          <ButtonGroup variant="contained" aria-label="axis Selector">
+          <ButtonGroup aria-label="axis Selector">
             <Button
               onClick={() => setAxis("X")}
               className={axis === "X" ? "bg-blue-600" : ""}
@@ -135,16 +164,37 @@ export default function SettingsPanel({
             {isAnimating ? "Scrambling..." : "Scramble"}
           </Button>
         </div>
-        <Button
-          className="mt-4 bg-red-500 hover:bg-red-600"
-          variant="contained"
-          endIcon={<RestartAltIcon />}
-          onClick={() => onReset()}
-          disabled={isAnimating}
-        >
-          Reset
-        </Button>
+        <div className="flex mt-4 space-x-2">
+          <Button
+            className="bg-red-500 hover:bg-red-600"
+            variant="contained"
+            endIcon={<RestartAltIcon />}
+            onClick={() => onReset()}
+            disabled={isAnimating}
+          >
+            Reset
+          </Button>
+
+          {isAnimating && (
+            <Button
+              className={
+                isPaused
+                  ? "bg-green-500 hover:bg-green-600"
+                  : "bg-yellow-500 hover:bg-yellow-600"
+              }
+              variant="contained"
+              startIcon={isPaused ? <PlayArrowIcon /> : <PauseIcon />}
+              onClick={handlePauseToggle}
+            >
+              {isPaused ? "Resume" : "Pause"}
+            </Button>
+          )}
+        </div>
       </div>
+
+      {showInputModal && (
+        <InputCubeModal onClose={() => setShowInputModal(false)} />
+      )}
     </div>
   );
 }
