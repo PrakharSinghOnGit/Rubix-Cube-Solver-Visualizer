@@ -1,3 +1,4 @@
+import chalk from "chalk";
 import { CubeType, FACE_COLORS, FaceColorType } from "../types";
 
 export class Cube {
@@ -33,7 +34,6 @@ export class Cube {
   reset() {
     this.initFaces();
   }
-
   /**
    * Rotates a layer of the cube along X, Y, or Z axis
    * @param {number} layer - The layer to rotate (0 to size-1)
@@ -82,6 +82,7 @@ export class Cube {
       if (axis === "Y") faceToRotate = layer === 0 ? UP : DOWN;
       if (axis === "Z") faceToRotate = layer === 0 ? FRONT : BACK;
 
+      this.printCube();
       this.faces[faceToRotate] = this.rotateFace(
         this.faces[faceToRotate],
         clockwise
@@ -118,6 +119,7 @@ export class Cube {
     }
   }
 
+
   /**
    * Rotates a layer around the X axis
    * @private
@@ -132,18 +134,17 @@ export class Cube {
       UP = "u",
       DOWN = "d";
     const lastIndex = this.size - 1;
-
     for (let i = 0; i < this.size; i++) {
       if (clockwise) {
         rotatedFaces[UP][layer][i] = this.faces[BACK][lastIndex - i][layer];
         rotatedFaces[FRONT][layer][i] = this.faces[UP][layer][i];
         rotatedFaces[DOWN][layer][i] = this.faces[FRONT][layer][i];
-        rotatedFaces[BACK][lastIndex - i][layer] = this.faces[DOWN][layer][i];
+        rotatedFaces[BACK][layer][i] = this.faces[DOWN][layer][i];
       } else {
         rotatedFaces[UP][layer][i] = this.faces[FRONT][layer][i];
         rotatedFaces[FRONT][layer][i] = this.faces[DOWN][layer][i];
         rotatedFaces[DOWN][layer][i] = this.faces[BACK][lastIndex - i][layer];
-        rotatedFaces[BACK][lastIndex - i][layer] = this.faces[UP][layer][i];
+        rotatedFaces[BACK][layer][i] = this.faces[UP][layer][i];
       }
     }
   }
@@ -165,14 +166,13 @@ export class Cube {
 
     for (let i = 0; i < this.size; i++) {
       if (clockwise) {
-        // Fixed the indexing issue in the left face
         rotatedFaces[UP][i][layer] = this.faces[LEFT][lastIndex - i][layer];
-        rotatedFaces[RIGHT][layer][i] = this.faces[UP][i][layer];
+        rotatedFaces[RIGHT][i][layer] = this.faces[UP][i][layer];
         rotatedFaces[DOWN][i][layer] = this.faces[RIGHT][layer][i];
         rotatedFaces[LEFT][lastIndex - i][layer] = this.faces[DOWN][i][layer];
       } else {
         rotatedFaces[UP][i][layer] = this.faces[RIGHT][layer][i];
-        rotatedFaces[RIGHT][layer][i] = this.faces[DOWN][i][layer];
+        rotatedFaces[RIGHT][i][layer] = this.faces[DOWN][i][layer];
         rotatedFaces[DOWN][i][layer] = this.faces[LEFT][lastIndex - i][layer];
         rotatedFaces[LEFT][lastIndex - i][layer] = this.faces[UP][i][layer];
       }
@@ -186,7 +186,12 @@ export class Cube {
 
     for (let i = 0; i < n; i++) {
       for (let j = 0; j < n; j++) {
-        newFace[j][n - 1 - i] = clockwise ? face[i][j] : face[n - 1 - j][i];
+        if (clockwise) {
+          newFace[j][n - 1 - i] = face[i][j];
+        } else {
+          newFace[i][j] = face[j][n - 1 - i];
+        }
+        // newFace[j][n - 1 - i] = clockwise ? face[i][j] : face[n - 1 - j][i];
       }
     }
 
@@ -230,9 +235,55 @@ export class Cube {
       b: this.faces.b,
     };
   }
+
+  printCube() {
+    console.log("------------------------------");
+    
+    const n = this.size;
+    const { u, d, l, r, f, b } = this.faces;
+    const rotatedFaces = {
+      u:this.rotateFace(u, true),
+      d:this.rotateFace(d, true),
+      l: this.rotateFace(l, true),
+      r: this.rotateFace(r, true),
+      f: this.rotateFace(f, true),
+      b: this.rotateFace(b, true),
+    };
+    // Print top face
+    rotatedFaces.u.forEach((row) => {
+      console.log(" ".repeat(n * 4) +
+      row.map((r) => chalk.hex(FACE_COLORS[r as FaceColorType])("▇▇▇"))
+      .join(" ")
+      );
+    });
+    // Print middle faces (l, f, r, b)
+    for (let i = 0; i < n; i++) {
+      const left = rotatedFaces.l[i]
+        .map((r) => chalk.hex(FACE_COLORS[r as FaceColorType])("▇▇▇"))
+        .join(" ");
+      const front = rotatedFaces.f[i]
+        .map((r) => chalk.hex(FACE_COLORS[r as FaceColorType])("▇▇▇"))
+        .join(" ");
+      const right = rotatedFaces.r[i]
+        .map((r) => chalk.hex(FACE_COLORS[r as FaceColorType])("▇▇▇"))
+        .join(" ");
+      const back = rotatedFaces.b[i]
+        .map((r) => chalk.hex(FACE_COLORS[r as FaceColorType])("▇▇▇"))
+        .join(" ");
+      console.log(`${left} ${front} ${right} ${back}`);
+    }
+ 
+    rotatedFaces.d.forEach((row) => {
+      console.log(" ".repeat(n * 4) +
+          row.map((r) => chalk.hex(FACE_COLORS[r as FaceColorType])("▇▇▇"))
+            .join(" ")
+      );
+    });
+ 
+  }
 }
 
-// const cube = new Cube(3);
-// cube.printCube();
-// cube.rotate(0, "Y", true);
-// cube.printCube();
+
+const cube = new Cube(3);
+cube.rotate(0, "X", true);
+cube.printCube()

@@ -125,9 +125,11 @@ export default function SettingsPanel({
           <div className="flex items-center">
             <span className="mr-2 text-sm">CCW</span>
             <Switch
+              checked={clockwise}
               onChange={(e) => {
                 setClockwise(e.target.checked);
               }}
+              disabled={isAnimating}
             />
             <span className="ml-2 text-sm">CW</span>
           </div>
