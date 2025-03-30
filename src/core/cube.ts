@@ -1,6 +1,14 @@
 import chalk from "chalk";
 import { CubeType, FACE_COLORS, FaceColorType } from "../types";
 
+// Define face constants for better readability
+const FRONT = "f",
+  BACK = "b",
+  LEFT = "l",
+  RIGHT = "r",
+  UP = "u",
+  DOWN = "d";
+
 export class Cube {
   size: number;
   faces: {
@@ -31,6 +39,24 @@ export class Cube {
     }
   }
 
+  toFlatString(faces: { [face: string]: string[][] }): string {
+    const order = ["u", "r", "f", "d", "l", "b"];
+    return order.map((face) => faces[face].flat().join("")).join("");
+  }
+
+  fromFlatString(state: string, n = 3) {
+    const order = ["u", "r", "f", "d", "l", "b"];
+    let index = 0;
+    const faces: { [face: string]: string[][] } = {};
+
+    for (const face of order) {
+      faces[face] = Array.from({ length: n }, () =>
+        Array.from({ length: n }, () => state[index++])
+      );
+    }
+    return faces;
+  }
+
   reset() {
     this.initFaces();
   }
@@ -49,14 +75,6 @@ export class Cube {
     // Deep copy the current state
     const rotatedFaces = JSON.parse(JSON.stringify(this.faces));
 
-    // Define face constants for better readability
-    const FRONT = "f",
-      BACK = "b",
-      LEFT = "l",
-      RIGHT = "r",
-      UP = "u",
-      DOWN = "d";
-
     // Rotate the appropriate layer based on axis
     switch (axis) {
       case "Y":
@@ -74,42 +92,21 @@ export class Cube {
 
     // Update the cube state
     this.faces = rotatedFaces;
-
-    // If the layer is the first or last, rotate the corresponding face
-    if (layer === 0 || layer === this.size - 1) {
-      let faceToRotate = "";
-      if (axis === "X") faceToRotate = layer === 0 ? LEFT : RIGHT;
-      if (axis === "Y") faceToRotate = layer === 0 ? UP : DOWN;
-      if (axis === "Z") faceToRotate = layer === 0 ? FRONT : BACK;
-
-      this.printCube();
-      this.faces[faceToRotate] = this.rotateFace(
-        this.faces[faceToRotate],
-        clockwise
-      );
-    }
   }
 
-  /**
-   * Rotates a layer around the Y axis
-   * @private
-   */
   rotateYLayer(
     layer: number,
     clockwise: boolean,
     rotatedFaces: { [x: string]: string[][] }
   ) {
-    const FRONT = "f",
-      BACK = "b",
-      LEFT = "l",
-      RIGHT = "r";
-
     for (let i = 0; i < this.size; i++) {
       if (clockwise) {
         rotatedFaces[FRONT][i][layer] = this.faces[LEFT][i][layer];
         rotatedFaces[RIGHT][i][layer] = this.faces[FRONT][i][layer];
         rotatedFaces[BACK][i][layer] = this.faces[RIGHT][i][layer];
-        rotatedFaces[LEFT][i][layer] = this.faces[BACK][i][layer];
+        rotatedFaces[LEFT][i][layer] = [...this.faces[BACK][i][layer]]
+          .reverse()
+          .join("");
       } else {
         rotatedFaces[FRONT][i][layer] = this.faces[RIGHT][i][layer];
         rotatedFaces[LEFT][i][layer] = this.faces[FRONT][i][layer];
@@ -117,69 +114,79 @@ export class Cube {
         rotatedFaces[RIGHT][i][layer] = this.faces[BACK][i][layer];
       }
     }
+    if (layer === 0) {
+      rotatedFaces[DOWN] = this.rotateFace(rotatedFaces[DOWN], clockwise);
+    }
+    if (layer === this.size - 1) {
+      rotatedFaces[UP] = this.rotateFace(rotatedFaces[UP], !clockwise);
+    }
   }
 
-
-  /**
-   * Rotates a layer around the X axis
-   * @private
-   */
   rotateXLayer(
     layer: number,
     clockwise: boolean,
     rotatedFaces: { [x: string]: string[][] }
   ) {
-    const FRONT = "f",
-      BACK = "b",
-      UP = "u",
-      DOWN = "d";
     const lastIndex = this.size - 1;
-    for (let i = 0; i < this.size; i++) {
-      if (clockwise) {
-        rotatedFaces[UP][layer][i] = this.faces[BACK][lastIndex - i][layer];
-        rotatedFaces[FRONT][layer][i] = this.faces[UP][layer][i];
-        rotatedFaces[DOWN][layer][i] = this.faces[FRONT][layer][i];
-        rotatedFaces[BACK][layer][i] = this.faces[DOWN][layer][i];
-      } else {
-        rotatedFaces[UP][layer][i] = this.faces[FRONT][layer][i];
-        rotatedFaces[FRONT][layer][i] = this.faces[DOWN][layer][i];
-        rotatedFaces[DOWN][layer][i] = this.faces[BACK][lastIndex - i][layer];
-        rotatedFaces[BACK][layer][i] = this.faces[UP][layer][i];
-      }
+
+    if (clockwise) {
+      rotatedFaces[FRONT][layer] = this.faces[DOWN][layer];
+      rotatedFaces[UP][layer] = this.faces[FRONT][layer];
+      rotatedFaces[BACK][lastIndex - layer] = [
+        ...this.faces[UP][layer],
+      ].reverse();
+      rotatedFaces[DOWN][layer] = [
+        ...this.faces[BACK][lastIndex - layer],
+      ].reverse();
+    } else {
+      rotatedFaces[FRONT][layer] = this.faces[UP][layer];
+      rotatedFaces[DOWN][layer] = this.faces[FRONT][layer];
+      rotatedFaces[BACK][lastIndex - layer] = [
+        ...this.faces[DOWN][layer],
+      ].reverse();
+      rotatedFaces[UP][layer] = [
+        ...this.faces[BACK][lastIndex - layer],
+      ].reverse();
+    }
+
+    if (layer === 0) {
+      rotatedFaces[LEFT] = this.rotateFace(rotatedFaces[LEFT], !clockwise);
+    }
+    if (layer === this.size - 1) {
+      rotatedFaces[RIGHT] = this.rotateFace(rotatedFaces[RIGHT], clockwise);
     }
   }
 
-  /**
-   * Rotates a layer around the Z axis
-   * @private
-   */
   rotateZLayer(
     layer: number,
     clockwise: boolean,
     rotatedFaces: { [x: string]: string[][] }
   ) {
-    const UP = "u",
-      RIGHT = "r",
-      DOWN = "d",
-      LEFT = "l";
     const lastIndex = this.size - 1;
 
     for (let i = 0; i < this.size; i++) {
       if (clockwise) {
-        rotatedFaces[UP][i][layer] = this.faces[LEFT][lastIndex - i][layer];
-        rotatedFaces[RIGHT][i][layer] = this.faces[UP][i][layer];
-        rotatedFaces[DOWN][i][layer] = this.faces[RIGHT][layer][i];
-        rotatedFaces[LEFT][lastIndex - i][layer] = this.faces[DOWN][i][layer];
+        rotatedFaces[UP][i][layer] = this.faces[LEFT][lastIndex - layer][i];
+        rotatedFaces[RIGHT][layer][i] = this.faces[UP][lastIndex - i][layer];
+        rotatedFaces[DOWN][i][lastIndex - layer] = this.faces[RIGHT][layer][i];
+        rotatedFaces[LEFT][lastIndex - layer][i] =
+          this.faces[DOWN][lastIndex - i][lastIndex - layer];
       } else {
-        rotatedFaces[UP][i][layer] = this.faces[RIGHT][layer][i];
-        rotatedFaces[RIGHT][i][layer] = this.faces[DOWN][i][layer];
-        rotatedFaces[DOWN][i][layer] = this.faces[LEFT][lastIndex - i][layer];
-        rotatedFaces[LEFT][lastIndex - i][layer] = this.faces[UP][i][layer];
+        rotatedFaces[UP][i][layer] = this.faces[RIGHT][layer][lastIndex - i];
+        rotatedFaces[RIGHT][layer][i] = this.faces[DOWN][i][lastIndex - layer];
+        rotatedFaces[DOWN][i][lastIndex - layer] =
+          this.faces[LEFT][lastIndex - layer][lastIndex - i];
+        rotatedFaces[LEFT][lastIndex - layer][i] = this.faces[UP][i][layer];
       }
+    }
+    if (layer === 0) {
+      rotatedFaces[FRONT] = this.rotateFace(rotatedFaces[FRONT], clockwise);
+    }
+    if (layer === this.size - 1) {
+      rotatedFaces[BACK] = this.rotateFace(rotatedFaces[BACK], !clockwise);
     }
   }
 
-  /** Rotates a face 90° clockwise or counterclockwise */
   rotateFace(face: string[][], clockwise: boolean): string[][] {
     const n = this.size;
     const newFace = Array.from({ length: n }, () => Array(n).fill(""));
@@ -219,9 +226,41 @@ export class Cube {
       const axis = axes[Math.floor(Math.random() * axes.length)];
       const clockwise = Math.random() > 0.5;
       moves.push({ layer, axis, clockwise });
+      console.log(i, this.getNotation(axis, layer, this.size, clockwise));
     }
 
     return moves;
+  }
+
+  getNotation(
+    axis: "X" | "Y" | "Z",
+    layer: number,
+    size: number,
+    clockwise: boolean
+  ): string {
+    let move = "";
+
+    switch (axis) {
+      case "Y":
+        if (layer === size - 1) move = "U";
+        else if (layer === 0) move = "D";
+        else move = `${size - layer}Uw`; // Wide move for NxN
+        break;
+      case "X":
+        if (layer === size - 1) move = "R";
+        else if (layer === 0) move = "L";
+        else move = `${size - layer}Rw`; // Wide move for NxN
+        break;
+      case "Z":
+        if (layer === size - 1) move = "F";
+        else if (layer === 0) move = "B";
+        else move = `${size - layer}Fw`; // Wide move for NxN
+        break;
+    }
+
+    if (!clockwise) move += "'"; // Add counterclockwise notation
+
+    return move;
   }
 
   getState(): CubeType {
@@ -238,12 +277,11 @@ export class Cube {
 
   printCube() {
     console.log("------------------------------");
-    
     const n = this.size;
     const { u, d, l, r, f, b } = this.faces;
     const rotatedFaces = {
-      u:this.rotateFace(u, true),
-      d:this.rotateFace(d, true),
+      u: this.rotateFace(u, true),
+      d: this.rotateFace(d, true),
       l: this.rotateFace(l, true),
       r: this.rotateFace(r, true),
       f: this.rotateFace(f, true),
@@ -251,9 +289,11 @@ export class Cube {
     };
     // Print top face
     rotatedFaces.u.forEach((row) => {
-      console.log(" ".repeat(n * 4) +
-      row.map((r) => chalk.hex(FACE_COLORS[r as FaceColorType])("▇▇▇"))
-      .join(" ")
+      console.log(
+        " ".repeat(n * 4) +
+          row
+            .map((r) => chalk.hex(FACE_COLORS[r as FaceColorType])("▇▇▇"))
+            .join(" ")
       );
     });
     // Print middle faces (l, f, r, b)
@@ -272,18 +312,14 @@ export class Cube {
         .join(" ");
       console.log(`${left} ${front} ${right} ${back}`);
     }
- 
+
     rotatedFaces.d.forEach((row) => {
-      console.log(" ".repeat(n * 4) +
-          row.map((r) => chalk.hex(FACE_COLORS[r as FaceColorType])("▇▇▇"))
+      console.log(
+        " ".repeat(n * 4) +
+          row
+            .map((r) => chalk.hex(FACE_COLORS[r as FaceColorType])("▇▇▇"))
             .join(" ")
       );
     });
- 
   }
 }
-
-
-const cube = new Cube(3);
-cube.rotate(0, "X", true);
-cube.printCube()

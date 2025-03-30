@@ -29,8 +29,8 @@ export const FACE_POSITIONS = {
   b: { normal: [0, 0, -1], xAxis: [-1, 0, 0], yAxis: [0, 1, 0] }, // Back
   u: { normal: [0, 1, 0], xAxis: [1, 0, 0], yAxis: [0, 0, -1] }, // Up
   d: { normal: [0, -1, 0], xAxis: [1, 0, 0], yAxis: [0, 0, 1] }, // Down
-  l: { normal: [-1, 0, 0], xAxis: [0, 0, -1], yAxis: [0, 1, 0] }, // Left
-  r: { normal: [1, 0, 0], xAxis: [0, 0, 1], yAxis: [0, 1, 0] }, // Right
+  l: { normal: [-1, 0, 0], xAxis: [0, 0, 1], yAxis: [0, 1, 0] }, // Left - changed xAxis
+  r: { normal: [1, 0, 0], xAxis: [0, 0, -1], yAxis: [0, 1, 0] }, // Right - changed xAxis
 };
 
 export const FACE_ROTATIONS = {

@@ -1,5 +1,5 @@
 import { Canvas, useThree } from "@react-three/fiber";
-import { OrbitControls } from "@react-three/drei";
+import { OrbitControls,Text } from "@react-three/drei";
 import * as THREE from "three";
 import {
   FACE_COLORS,
@@ -49,21 +49,39 @@ export default function CubeView3d({ cubeState }: { cubeState: CubeType }) {
   function Sticker({
     pos,
     rot,
+    text,
     col,
   }: {
     pos: number[];
     rot: number[];
+    text: string;
     col: string;
   }) {
     const color = FACE_COLORS[col as keyof typeof FACE_COLORS];
     return (
-      <mesh
-        position={new THREE.Vector3(...pos)}
-        rotation={new THREE.Euler(...rot)}
-      >
+      <group
+      position={new THREE.Vector3(...pos)}
+      rotation={new THREE.Euler(...rot)}
+    >
+      <mesh>
         <planeGeometry args={[1, 1]} />
         <meshStandardMaterial color={color} />
       </mesh>
+
+      {text && (
+        <Text
+          position={[0, 0, 0.01]}
+          fontSize={0.3}
+          color="black"
+          anchorX="center"
+          anchorY="middle"
+        >
+          {text}
+        </Text>
+      )}
+
+        <meshStandardMaterial color="black" />
+      </group>
     );
   }
 
@@ -76,7 +94,7 @@ export default function CubeView3d({ cubeState }: { cubeState: CubeType }) {
     face: "f" | "b" | "u" | "d" | "l" | "r";
     colors: string[][];
   }) {
-    let stickers = [];
+    const stickers = [];
     //const offset = (size - 1) / 2; // Center the grid
 
     for (let i = 0; i < size; i++) {
@@ -84,6 +102,7 @@ export default function CubeView3d({ cubeState }: { cubeState: CubeType }) {
         stickers.push(
           <Sticker
             key={`${i}-${j}`}
+            text={""}
             col={colors[i][j]}
             pos={getStickerPosition(i, j, size, face, GAP)}
             rot={FACE_ROTATIONS[face as keyof typeof FACE_ROTATIONS]}
