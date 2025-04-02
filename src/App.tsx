@@ -168,8 +168,8 @@ function App() {
               maxSize={70}
               className={styles.renderContainer}
             >
-              <PanelLabel title="2d Cube View" />
-              <CubeView2d cubeState={cube.getState()} />
+              <PanelLabel title="3d Cube View" />
+              <CubeView3d cubeState={cube.getState()} />
             </Panel>
             <PanelResizeHandle
               children={<ResizeHandle vertical={true} />}
@@ -182,8 +182,8 @@ function App() {
               maxSize={70}
               className={styles.renderContainer}
             >
-              <PanelLabel title="3d Cube View" />
-              <CubeView3d cubeState={cube.getState()} />
+              <PanelLabel title="2d Cube View" />
+              <CubeView2d cubeState={cube.getState()} />
             </Panel>
           </PanelGroup>
         </Panel>
