@@ -39,11 +39,33 @@ export class Cube {
     }
   }
 
+  /**
+   * Checks if the cube is in a solved state
+   * @returns {boolean} True if the cube is solved, false otherwise
+   */
+  isSolved(): boolean {
+    return Object.values(this.faces).every((face) => {
+      const firstColor = face[0][0];
+      return face.every((row) => row.every((cell) => cell === firstColor));
+    });
+  }
+
+  /**
+   * Converts the cube state to a flat string representation
+   * @param {CubeType} faces - The cube state to convert
+   * @returns {string} The flat string representation of the cube state
+   */
   toFlatString(faces: { [face: string]: string[][] }): string {
     const order = ["u", "r", "f", "d", "l", "b"];
     return order.map((face) => faces[face].flat().join("")).join("");
   }
 
+  /**
+   * Converts a flat string representation of the cube state to a Cube object
+   * @param {string} state - The flat string representation of the cube state
+   * @param {number} n - The size of the cube (default is 3)
+   * @returns {Cube} The Cube object representing the state
+   */
   fromFlatString(state: string, n = 3) {
     const order = ["u", "r", "f", "d", "l", "b"];
     let index = 0;
@@ -57,9 +79,13 @@ export class Cube {
     return faces;
   }
 
+  /**
+   * Resets the cube to its initial state
+   */
   reset() {
     this.initFaces();
   }
+
   /**
    * Rotates a layer of the cube along X, Y, or Z axis
    * @param {number} layer - The layer to rotate (0 to size-1)
@@ -205,6 +231,10 @@ export class Cube {
     return newFace;
   }
 
+  /**
+   * Scrambles the cube by performing a random number of moves
+   * @param {number} count - The number of moves to perform (default is 20)
+   */
   scramble(count: number = 20) {
     const moves = this.generateScrambleMoves(count);
     moves.forEach((move) => {
@@ -275,6 +305,9 @@ export class Cube {
     };
   }
 
+  /**
+   * Prints the current state of the cube to the console
+   */
   printCube() {
     console.log("------------------------------");
     const n = this.size;

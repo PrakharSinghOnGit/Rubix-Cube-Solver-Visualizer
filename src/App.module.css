@@ -3,7 +3,7 @@
   height: 100vh;
   width: 100vw;
   overflow: hidden;
-  padding: var(--gap) 0;
+  padding: 10 0;
 }
 
 .renderContainer {
@@ -43,11 +43,11 @@
 }
 
 .moverV {
-  width: var(--gap);
+  width: 10px;
 }
 
 .moverH {
- height: var(--gap);
+ height: 10px;
 }
 
 .moverH, .moverV {

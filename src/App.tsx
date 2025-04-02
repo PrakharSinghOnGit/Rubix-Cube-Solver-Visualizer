@@ -16,8 +16,10 @@ function App() {
   const [size, setSize] = useState(3);
   const [cube, setCube] = useState(() => new Cube(size));
   const [isAnimating, setIsAnimating] = useState(false);
-  const [animationSpeed, setAnimationSpeed] = useState(200);
   const animationRef = useRef<ReturnType<typeof setTimeout>>(undefined);
+
+  localStorage.setItem("anim", "50");
+  localStorage.setItem("scam", "20");
 
   useEffect(() => {
     setCube(new Cube(size));
@@ -54,9 +56,12 @@ function App() {
       };
       setCube(updatedCube);
 
-      await new Promise((resolve) => {
-        animationRef.current = setTimeout(resolve, animationSpeed);
-      });
+      const anim = Number(localStorage.getItem("anim"));
+      if (anim != 0) {
+        await new Promise((resolve) => {
+          animationRef.current = setTimeout(resolve, anim);
+        });
+      }
     }
 
     setIsAnimating(false);
@@ -87,9 +92,12 @@ function App() {
     setCube(updatedCube);
 
     // Wait for the animation speed duration
-    await new Promise((resolve) => {
-      animationRef.current = setTimeout(resolve, animationSpeed);
-    });
+    const anim = Number(localStorage.getItem("anim"));
+    if (anim != 0) {
+      await new Promise((resolve) => {
+        animationRef.current = setTimeout(resolve, anim);
+      });
+    }
 
     setIsAnimating(false);
   };
@@ -105,7 +113,7 @@ function App() {
   return (
     <div className="flex h-screen w-screen overflow-visible p-3 pr-0 pl-0">
       <PanelGroup direction="horizontal">
-        <Panel minSize={15} maxSize={30}>
+        <Panel minSize={16} maxSize={30} defaultSize={20}>
           <PanelGroup direction="vertical">
             <Panel
               minSize={13}
@@ -122,6 +130,7 @@ function App() {
               minSize={25}
               maxSize={65}
               defaultSize={27}
+              style={{ overflow: "scroll" }}
               className={`${styles.panal} ${styles.leftPan}`}
             >
               <PanelLabel title="Settings" left={true} />
@@ -132,8 +141,6 @@ function App() {
                 size={size}
                 onScramble={handleScramble}
                 isAnimating={isAnimating}
-                animationSpeed={animationSpeed}
-                setAnimationSpeed={setAnimationSpeed}
               />
             </Panel>
             <PanelResizeHandle

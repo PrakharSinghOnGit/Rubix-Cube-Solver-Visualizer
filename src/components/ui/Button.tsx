@@ -6,44 +6,36 @@ interface ButtonProps {
   className?: string;
   onClick?: () => void;
   disabled?: boolean;
-  startIcon?: ReactNode;
-  endIcon?: ReactNode;
+  joinRight?: boolean;
+  joinLeft?: boolean;
+  selected?: boolean;
+  filled?: boolean;
 }
 
 export default function Button({
   children,
-  variant = "contained",
-  className = "",
   onClick,
   disabled = false,
-  startIcon,
-  endIcon,
+  className = "",
+  joinRight = false,
+  joinLeft = false,
+  selected = false,
+  filled = false,
 }: ButtonProps) {
-  const baseStyles =
-    "px-4 py-2 rounded font-medium focus:outline-none transition-colors duration-200 flex items-center justify-center";
-
-  let variantStyles = "";
-  if (variant === "contained") {
-    variantStyles =
-      "bg-blue-500 text-white hover:bg-blue-600 disabled:bg-gray-300";
-  } else if (variant === "outlined") {
-    variantStyles =
-      "border border-blue-500 text-blue-500 hover:bg-blue-50 disabled:border-gray-300 disabled:text-gray-300";
-  } else {
-    variantStyles = "text-blue-500 hover:bg-blue-50 disabled:text-gray-300";
-  }
-
   return (
     <button
-      className={`${baseStyles} ${variantStyles} ${className} ${
-        disabled ? "cursor-not-allowed" : "cursor-pointer"
-      }`}
+      className={`
+    relative text-white p-2 grow flex justify-center items-center cursor-pointer outline-none rounded-[15px] 
+     ${joinLeft ? "rounded-l-none" : ""}
+      ${disabled ? "cursor-not-allowed" : "cursor-pointer"} 
+      ${joinRight ? "rounded-r-none" : ""}
+      ${selected ? "bg-blue-500 hover:bg-blue-400" : " hover:bg-blue-600"}
+      ${filled ? "bg-blue-500" : "border-blue-400 border-1"}
+    ${className}`}
       onClick={onClick}
       disabled={disabled}
     >
-      {startIcon && <span className="mr-2">{startIcon}</span>}
       {children}
-      {endIcon && <span className="ml-2">{endIcon}</span>}
     </button>
   );
 }

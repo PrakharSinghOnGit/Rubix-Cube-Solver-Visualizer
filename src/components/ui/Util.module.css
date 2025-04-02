@@ -1,16 +1,3 @@
-
-
-.PanelLabel {
-    position: absolute;
-    left: 0;
-    top: 0;
-    padding: var(--gap);
-    border-top: 3px solid var(--frontground);
-    border-left: 3px solid var(--frontground);
-    background-color: var(--background);
-    border-radius: var(--borderRadius) 0;
-  }
-
   .resizeHandle {
     width:2px;
     height:30px;

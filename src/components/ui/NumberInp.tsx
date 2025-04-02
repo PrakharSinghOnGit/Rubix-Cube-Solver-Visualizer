@@ -5,14 +5,12 @@ export default function NumberInp({
   min,
   def,
   steps,
-  label,
   onChange,
 }: {
   max: number;
   min: number;
   def: number;
   steps: number;
-  label: string;
   onChange?: (value: number) => void;
 }) {
   const [value, setValue] = useState(def);
@@ -23,41 +21,47 @@ export default function NumberInp({
 
   const increment = () => {
     if (value < max) {
-      const newValue = value + steps;
+      const newValue = Math.min(max, value + steps);
       setValue(newValue);
-      if (onChange) onChange(newValue);
+      onChange?.(newValue);
     }
   };
 
   const decrement = () => {
     if (value > min) {
-      const newValue = value - steps;
+      const newValue = Math.max(min, value - steps);
       setValue(newValue);
-      if (onChange) onChange(newValue);
+      onChange?.(newValue);
     }
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newValue = parseInt(e.target.value);
-    if (!isNaN(newValue) && newValue >= min && newValue <= max) {
-      setValue(newValue);
-      if (onChange) onChange(newValue);
+    const inputValue = e.target.value;
+    const newValue = parseInt(inputValue);
+    
+    if (!isNaN(newValue)) {
+      const clampedValue = Math.max(min, Math.min(max, newValue));
+      setValue(clampedValue);
+      onChange?.(clampedValue);
+    } else if (inputValue === '') {
+      setValue(min);
+      onChange?.(min);
     }
   };
 
   return (
     <div className="max-w-xs mx-auto">
-      <label
-        htmlFor="quantity-input"
-        className="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
-      >
-        {label}
-      </label>
-      <div className="relative flex items-center max-w-[8rem]">
+      <div className="relative flex items-center justify-around gap-1 max-w-[8rem]">
         <button
           type="button"
           onClick={decrement}
-          className="bg-gray-100 dark:bg-gray-700 dark:hover:bg-gray-600 dark:border-gray-600 hover:bg-gray-200 border border-gray-300 rounded-s-lg p-3 h-11 focus:ring-gray-100 dark:focus:ring-gray-700 focus:ring-2 focus:outline-none"
+          className=""
+          style={{
+            borderRadius: "10px",
+            border: "1px solid var(--borderCol)",
+            padding: 10,
+            cursor: "pointer",
+          }}
         >
           <svg
             className="w-3 h-3 text-gray-900 dark:text-white"
@@ -80,13 +84,20 @@ export default function NumberInp({
           id="quantity-input"
           value={value}
           onChange={handleInputChange}
-          className="bg-gray-50 border-x-0 border-gray-300 h-11 text-center text-gray-900 text-sm focus:ring-blue-500 focus:border-blue-500 block w-full py-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+          className="rounded-[10px] p-2.5 cursor-pointer w-10 text-center focus:outline-none h-9"
+          style={{ border: "1px solid var(--borderCol)" }}
           required
         />
         <button
           type="button"
           onClick={increment}
-          className="bg-gray-100 dark:bg-gray-700 dark:hover:bg-gray-600 dark:border-gray-600 hover:bg-gray-200 border border-gray-300 rounded-e-lg p-3 h-11 focus:ring-gray-100 dark:focus:ring-gray-700 focus:ring-2 focus:outline-none"
+          className=""
+          style={{
+            borderRadius: "10px",
+            border: "1px solid var(--borderCol)",
+            padding: 10,
+            cursor: "pointer",
+          }}
         >
           <svg
             className="w-3 h-3 text-gray-900 dark:text-white"
