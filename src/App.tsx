@@ -164,7 +164,7 @@ function App() {
           <PanelGroup direction="vertical">
             <Panel
               minSize={30}
-              defaultSize={40}
+              defaultSize={60}
               maxSize={70}
               className={styles.renderContainer}
             >
@@ -178,7 +178,7 @@ function App() {
             />
             <Panel
               minSize={30}
-              defaultSize={60}
+              defaultSize={40}
               maxSize={70}
               className={styles.renderContainer}
             >
