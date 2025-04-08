@@ -1,6 +1,7 @@
 import chalk from "chalk";
 import { CubeType, FACE_COLORS, FaceColorType } from "../types";
 
+// Define face constants for better readability
 const FRONT = "f",
   BACK = "b",
   LEFT = "l",
@@ -38,33 +39,11 @@ export class Cube {
     }
   }
 
-  /**
-   * Checks if the cube is in a solved state
-   * @returns {boolean} True if the cube is solved, false otherwise
-   */
-  isSolved(): boolean {
-    return Object.values(this.faces).every((face) => {
-      const firstColor = face[0][0];
-      return face.every((row) => row.every((cell) => cell === firstColor));
-    });
-  }
-
-  /**
-   * Converts the cube state to a flat string representation
-   * @param {CubeType} faces - The cube state to convert
-   * @returns {string} The flat string representation of the cube state
-   */
   toFlatString(faces: { [face: string]: string[][] }): string {
     const order = ["u", "r", "f", "d", "l", "b"];
     return order.map((face) => faces[face].flat().join("")).join("");
   }
 
-  /**
-   * Converts a flat string representation of the cube state to a Cube object
-   * @param {string} state - The flat string representation of the cube state
-   * @param {number} n - The size of the cube (default is 3)
-   * @returns {Cube} The Cube object representing the state
-   */
   fromFlatString(state: string, n = 3) {
     const order = ["u", "r", "f", "d", "l", "b"];
     let index = 0;
@@ -78,61 +57,41 @@ export class Cube {
     return faces;
   }
 
-  /**
-   * Resets the cube to its initial state
-   */
   reset() {
     this.initFaces();
   }
-
   /**
-   * Rotates one or more layers of the cube along X, Y, or Z axis
-   * @param {number|number[]} layer - The layer(s) to rotate (0 to size-1)
+   * Rotates a layer of the cube along X, Y, or Z axis
+   * @param {number} layer - The layer to rotate (0 to size-1)
    * @param {"X"|"Y"|"Z"} axis - The axis to rotate around
    * @param {boolean} clockwise - Direction of rotation (true for clockwise)
    */
-  rotate(layer: number | number[], axis: "X" | "Y" | "Z", clockwise: boolean) {
-    const layers = Array.isArray(layer) ? layer : [layer];
-
-    for (const layerIndex of layers) {
-      if (layerIndex < 0 || layerIndex >= this.size) {
-        throw new Error(`Layer index out of bounds: ${layerIndex}`);
-      }
+  rotate(layer: number, axis: "X" | "Y" | "Z", clockwise: boolean) {
+    // Validate layer index
+    if (layer < 0 || layer >= this.size) {
+      throw new Error(`Layer index out of bounds: ${layer}`);
     }
 
+    // Deep copy the current state
     const rotatedFaces = JSON.parse(JSON.stringify(this.faces));
 
-    for (const layerIndex of layers) {
-      switch (axis) {
-        case "Y":
-          this.rotateYLayer(layerIndex, clockwise, rotatedFaces);
-          break;
-        case "X":
-          this.rotateXLayer(layerIndex, clockwise, rotatedFaces);
-          break;
-        case "Z":
-          this.rotateZLayer(layerIndex, clockwise, rotatedFaces);
-          break;
-        default:
-          throw new Error(`Invalid axis: ${axis}`);
-      }
+    // Rotate the appropriate layer based on axis
+    switch (axis) {
+      case "Y":
+        this.rotateYLayer(layer, clockwise, rotatedFaces);
+        break;
+      case "X":
+        this.rotateXLayer(layer, clockwise, rotatedFaces);
+        break;
+      case "Z":
+        this.rotateZLayer(layer, clockwise, rotatedFaces);
+        break;
+      default:
+        throw new Error(`Invalid axis: ${axis}`);
     }
 
+    // Update the cube state
     this.faces = rotatedFaces;
-
-    for (const layerIndex of layers) {
-      if (layerIndex === 0 || layerIndex === this.size - 1) {
-        let faceToRotate = "";
-        if (axis === "X") faceToRotate = layerIndex === 0 ? LEFT : RIGHT;
-        if (axis === "Y") faceToRotate = layerIndex === 0 ? DOWN : UP;
-        if (axis === "Z") faceToRotate = layerIndex === 0 ? BACK : FRONT;
-
-        this.faces[faceToRotate] = this.rotateFace(
-          this.faces[faceToRotate],
-          layerIndex === 0 ? !clockwise : clockwise
-        );
-      }
-    }
   }
 
   rotateYLayer(
@@ -246,10 +205,6 @@ export class Cube {
     return newFace;
   }
 
-  /**
-   * Scrambles the cube by performing a random number of moves
-   * @param {number} count - The number of moves to perform (default is 20)
-   */
   scramble(count: number = 20) {
     const moves = this.generateScrambleMoves(count);
     moves.forEach((move) => {
@@ -267,26 +222,9 @@ export class Cube {
     const moves = [];
 
     for (let i = 0; i < count; i++) {
+      const layer = Math.floor(Math.random() * this.size);
       const axis = axes[Math.floor(Math.random() * axes.length)];
       const clockwise = Math.random() > 0.5;
-      const WIDEM_MOVE_CHANCE = 0.2;
-      const isWideMove = Math.random() < WIDEM_MOVE_CHANCE && this.size > 2;
-
-      let layer;
-      if (isWideMove) {
-        const startLayer = Math.floor(Math.random() * (this.size - 1));
-        const endLayer =
-          startLayer +
-          1 +
-          Math.floor(Math.random() * (this.size - startLayer - 1));
-        layer = Array.from(
-          { length: endLayer - startLayer + 1 },
-          (_, i) => startLayer + i
-        );
-      } else {
-        layer = Math.floor(Math.random() * this.size);
-      }
-
       moves.push({ layer, axis, clockwise });
       console.log(i, this.getNotation(axis, layer, this.size, clockwise));
     }
@@ -296,52 +234,28 @@ export class Cube {
 
   getNotation(
     axis: "X" | "Y" | "Z",
-    layer: number | number[],
+    layer: number,
     size: number,
     clockwise: boolean
   ): string {
     let move = "";
-    const layers = Array.isArray(layer) ? layer : [layer];
 
-    layers.sort((a, b) => a - b);
-
-    if (layers.length > 1) {
-      switch (axis) {
-        case "Y":
-          if (layers.includes(size - 1)) move = `${layers.length}Uw`;
-          else if (layers.includes(0)) move = `${layers.length}Dw`;
-          else move = `${size - layers[0]}Uw`; // Middle slice notation
-          break;
-        case "X":
-          if (layers.includes(size - 1)) move = `${layers.length}Rw`;
-          else if (layers.includes(0)) move = `${layers.length}Lw`;
-          else move = `${size - layers[0]}Rw`; // Middle slice notation
-          break;
-        case "Z":
-          if (layers.includes(size - 1)) move = `${layers.length}Fw`;
-          else if (layers.includes(0)) move = `${layers.length}Bw`;
-          else move = `${size - layers[0]}Fw`; // Middle slice notation
-          break;
-      }
-    } else {
-      const singleLayer = layers[0];
-      switch (axis) {
-        case "Y":
-          if (singleLayer === size - 1) move = "U";
-          else if (singleLayer === 0) move = "D";
-          else move = `${size - singleLayer}Uw`; // Middle slice
-          break;
-        case "X":
-          if (singleLayer === size - 1) move = "R";
-          else if (singleLayer === 0) move = "L";
-          else move = `${size - singleLayer}Rw`; // Middle slice
-          break;
-        case "Z":
-          if (singleLayer === size - 1) move = "F";
-          else if (singleLayer === 0) move = "B";
-          else move = `${size - singleLayer}Fw`; // Middle slice
-          break;
-      }
+    switch (axis) {
+      case "Y":
+        if (layer === size - 1) move = "U";
+        else if (layer === 0) move = "D";
+        else move = `${size - layer}Uw`; // Wide move for NxN
+        break;
+      case "X":
+        if (layer === size - 1) move = "R";
+        else if (layer === 0) move = "L";
+        else move = `${size - layer}Rw`; // Wide move for NxN
+        break;
+      case "Z":
+        if (layer === size - 1) move = "F";
+        else if (layer === 0) move = "B";
+        else move = `${size - layer}Fw`; // Wide move for NxN
+        break;
     }
 
     if (!clockwise) move += "'"; // Add counterclockwise notation
@@ -361,9 +275,6 @@ export class Cube {
     };
   }
 
-  /**
-   * Prints the current state of the cube to the console
-   */
   printCube() {
     console.log("------------------------------");
     const n = this.size;

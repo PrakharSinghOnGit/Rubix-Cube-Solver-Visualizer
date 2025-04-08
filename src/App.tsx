@@ -18,9 +18,6 @@ function App() {
   const [isAnimating, setIsAnimating] = useState(false);
   const animationRef = useRef<ReturnType<typeof setTimeout>>(undefined);
 
-  localStorage.setItem("anim", "50");
-  localStorage.setItem("scam", "20");
-
   useEffect(() => {
     setCube(new Cube(size));
   }, [size]);
