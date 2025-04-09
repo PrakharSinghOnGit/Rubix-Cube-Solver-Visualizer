@@ -15,3 +15,7 @@ body{
   background-color: var(--background);
   color: var(--font);
 }
+
+::-webkit-scrollbar {
+  display: none;
+}

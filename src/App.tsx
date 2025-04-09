@@ -1,16 +1,20 @@
 import { useState, useEffect, useRef } from "react";
-import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
 import styles from "./App.module.css";
+import { Cube } from "./core/cube";
+import { CFOP } from "./core/CFOP";
+
+// Componenrts
 import CubeView3d from "./components/CubeView3d";
 import CubeView2d from "./components/CubeView2d";
-import { Cube } from "./core/cube";
-import Header from "./components/Header";
 import SettingsPanel from "./components/SettingsPanel";
 import SolverPanel from "./components/SolverPanel";
 import PanelLabel from "./components/ui/PanelLabel";
 import StatsPanel from "./components/StatsPanel";
+import Header from "./components/Header";
 import LogsPanel from "./components/LogsPanel";
 import ResizeHandle from "./components/ui/ResizeHandle";
+import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
+import { SolverType } from "./types";
 
 function App() {
   const [size, setSize] = useState(3);
@@ -65,7 +69,7 @@ function App() {
   };
 
   const handleRotate = async (
-    layerIndex: number,
+    layerIndex: number | number[],
     axis: "X" | "Y" | "Z",
     clockwise: boolean
   ) => {
@@ -105,6 +109,20 @@ function App() {
     // Create a new cube instance with the initial state
     const resetCube = new Cube(size);
     setCube(resetCube);
+  };
+
+  const handleSolver = async (solver: SolverType) => {
+    console.log("solving by " + solver);
+    if (solver === "CFOP") {
+      const solver = new CFOP(cube.getState());
+      solver.solve();
+      console.log(solver.comparisonCount);
+      console.log(solver.moveCount);
+      console.log(solver.timeTaken + " ms");
+      solver.moves.forEach((move) => {
+        handleRotate(move.layer, move.axis, move.clockwise);
+      });
+    }
   };
 
   return (
@@ -147,7 +165,7 @@ function App() {
             />
             <Panel className={`${styles.panal} ${styles.leftPan}`}>
               <PanelLabel title="Solver" left={true} />
-              <SolverPanel />
+              <SolverPanel setSolver={(solver) => handleSolver(solver)} />
             </Panel>
           </PanelGroup>
         </Panel>

@@ -8,6 +8,12 @@ export type CubeType = {
   b: string[][];
 };
 
+export type SolverType = "CFOP" | "BFS";
+export type MoveType = {
+  layer: number | number[];
+  axis: "X" | "Y" | "Z";
+  clockwise: boolean;
+};
 export type FaceType = string[][];
 export type FaceNames = "u" | "d" | "l" | "r" | "f" | "b";
 

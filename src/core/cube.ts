@@ -62,36 +62,48 @@ export class Cube {
   }
   /**
    * Rotates a layer of the cube along X, Y, or Z axis
-   * @param {number} layer - The layer to rotate (0 to size-1)
+   * @param {number|number[]} layer - The layer to rotate (0 to size-1)
    * @param {"X"|"Y"|"Z"} axis - The axis to rotate around
    * @param {boolean} clockwise - Direction of rotation (true for clockwise)
    */
-  rotate(layer: number, axis: "X" | "Y" | "Z", clockwise: boolean) {
-    // Validate layer index
-    if (layer < 0 || layer >= this.size) {
-      throw new Error(`Layer index out of bounds: ${layer}`);
+  rotate(layer: number | number[], axis: "X" | "Y" | "Z", clockwise: boolean) {
+    // converrt layer to array if it is a number
+    if (typeof layer === "number") {
+      layer = [layer];
     }
+
+    layer.forEach((l) => {
+      if (l < 0 || l >= this.size) {
+        throw new Error(`Layer index out of bounds: ${l}`);
+      }
+    });
 
     // Deep copy the current state
     const rotatedFaces = JSON.parse(JSON.stringify(this.faces));
 
     // Rotate the appropriate layer based on axis
-    switch (axis) {
-      case "Y":
-        this.rotateYLayer(layer, clockwise, rotatedFaces);
-        break;
-      case "X":
-        this.rotateXLayer(layer, clockwise, rotatedFaces);
-        break;
-      case "Z":
-        this.rotateZLayer(layer, clockwise, rotatedFaces);
-        break;
-      default:
-        throw new Error(`Invalid axis: ${axis}`);
-    }
+    layer.forEach((l) => {
+      switch (axis) {
+        case "Y":
+          this.rotateYLayer(l, clockwise, rotatedFaces);
+          break;
+        case "X":
+          this.rotateXLayer(l, clockwise, rotatedFaces);
+          break;
+        case "Z":
+          this.rotateZLayer(l, clockwise, rotatedFaces);
+          break;
+        default:
+          throw new Error(`Invalid axis: ${axis}`);
+      }
+    });
 
     // Update the cube state
     this.faces = rotatedFaces;
+    console.log("-=-=-=-=-=-=-=-=-");
+    console.log("LAYER: ", layer.join(", "));
+    console.log("AXIS: ", axis);
+    console.log("CLOCKWISE: ", clockwise);
   }
 
   rotateYLayer(
@@ -220,13 +232,19 @@ export class Cube {
   generateScrambleMoves(count: number = 20) {
     const axes: ("X" | "Y" | "Z")[] = ["X", "Y", "Z"];
     const moves = [];
+    const WIDE_MOVE_CHANCE = 0.2;
 
     for (let i = 0; i < count; i++) {
-      const layer = Math.floor(Math.random() * this.size);
+      const layer =
+        Math.random() < WIDE_MOVE_CHANCE
+          ? [
+              Math.floor(Math.random() * this.size),
+              Math.floor(Math.random() * this.size),
+            ]
+          : Math.floor(Math.random() * this.size);
       const axis = axes[Math.floor(Math.random() * axes.length)];
       const clockwise = Math.random() > 0.5;
       moves.push({ layer, axis, clockwise });
-      console.log(i, this.getNotation(axis, layer, this.size, clockwise));
     }
 
     return moves;
@@ -273,6 +291,16 @@ export class Cube {
       f: this.faces.f,
       b: this.faces.b,
     };
+  }
+
+  setState(state: CubeType) {
+    this.size = state.size;
+    this.faces.u = state.u;
+    this.faces.b = state.b;
+    this.faces.d = state.d;
+    this.faces.f = state.f;
+    this.faces.l = state.l;
+    this.faces.r = state.r;
   }
 
   printCube() {
