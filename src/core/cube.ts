@@ -57,6 +57,40 @@ export class Cube {
     return faces;
   }
 
+  isSolved(): boolean {
+    const faceKeys = Object.keys(this.faces);
+    for (const face of faceKeys) {
+      // Find the center sticker value for this face.
+      const mid = Math.floor(this.size / 2);
+      const centerColor = this.faces[face][mid][mid];
+
+      // Check every sticker on this face.
+      for (let i = 0; i < this.size; i++) {
+        for (let j = 0; j < this.size; j++) {
+          if (this.faces[face][i][j] !== centerColor) {
+            return false;
+          }
+        }
+      }
+    }
+    return true;
+  }
+
+  isFaceSolved(face: string): boolean {
+    const grid = this.faces[face];
+    const targetColor = grid[0][0]; // top-left corner as reference
+  
+    for (let i = 0; i < this.size; i++) {
+      for (let j = 0; j < this.size; j++) {
+        if (grid[i][j] !== targetColor) {
+          return false;
+        }
+      }
+    }
+    return true;
+  }
+  
+
   reset() {
     this.initFaces();
   }
