@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import styles from "./App.module.css";
 import { Cube } from "./core/cube";
-import { CFOP } from "./core/CFOP";
+import { IDDFS } from "./core/IDDFS.ts";
 
 // Componenrts
 import CubeView3d from "./components/CubeView3d";
@@ -113,8 +113,8 @@ function App() {
 
   const handleSolver = async (solver: SolverType) => {
     console.log("solving by " + solver);
-    if (solver === "CFOP") {
-      const solver = new CFOP(cube.getState());
+    if (solver === "IDDFS") {
+      const solver = new IDDFS(cube.getState());
       solver.solve();
       console.log(solver.comparisonCount);
       console.log(solver.moveCount);

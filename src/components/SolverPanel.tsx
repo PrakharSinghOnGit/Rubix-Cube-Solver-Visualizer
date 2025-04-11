@@ -10,11 +10,11 @@ export default function SolverPanel({
     <div className="mt-5 p-3">
       <Button
         onClick={() => {
-          setSolver("CFOP");
+          setSolver("IDDFS");
         }}
         className="w-full mt-3"
       >
-        CFOP
+        IDDFS
       </Button>
     </div>
   );

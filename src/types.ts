@@ -8,7 +8,7 @@ export type CubeType = {
   b: string[][];
 };
 
-export type SolverType = "CFOP" | "BFS";
+export type SolverType = "IDDFS" | "BFS";
 export type MoveType = {
   layer: number | number[];
   axis: "X" | "Y" | "Z";
