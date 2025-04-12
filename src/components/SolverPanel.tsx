@@ -27,6 +27,14 @@ export default function SolverPanel({
       >
         CFOP
       </Button>
+      <Button
+        onClick={() => {
+          setSolver("IDA*");
+        }}
+        className="w-full mt-3"
+      >
+        IDA*
+      </Button>
     </div>
   );
 }

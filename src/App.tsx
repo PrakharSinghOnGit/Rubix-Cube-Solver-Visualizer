@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import styles from "./App.module.css";
 import { Cube } from "./core/cube";
 import { IDDFS } from "./core/IDDFS.ts";
+import { IDAStar } from "./core/IDAStar.ts";
 import { CFOP } from "./core/CFOP.ts";
 import { SolverType, MoveType } from "./types";
 
@@ -46,7 +47,7 @@ function App() {
   useEffect(() => {
     // Initialize Web Worker
     workerRef.current = new Worker(
-      new URL("./core/IDDFSWorker.ts", import.meta.url),
+      new URL("./core/Worker.ts", import.meta.url),
       { type: "module" }
     );
 
@@ -151,8 +152,15 @@ function App() {
     
     if (solver === "IDDFS") {
       setIsSolving(true);
-      workerRef.current?.postMessage({ cubeState: cube.getState() });
-    } else if (solver === "CFOP") {
+      workerRef.current?.postMessage({ solver: "IDDFS", cubeState: cube.getState() });
+    } 
+    
+    else if (solver === "IDA*") {
+      setIsSolving(true);
+      workerRef.current?.postMessage({ solver: "IDA*", cubeState: cube.getState() });
+    }
+    
+    else if (solver === "CFOP") {
       const cfop = new CFOP(cube.getState());
       const solution = cfop.solve();
       const state = cfop.getState();
