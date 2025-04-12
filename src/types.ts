@@ -8,7 +8,7 @@ export type CubeType = {
   b: string[][];
 };
 
-export type SolverType = "IDDFS" | "BFS";
+export type SolverType = "IDDFS" | "BFS" | "CFOP";
 export type MoveType = {
   layer: number | number[];
   axis: "X" | "Y" | "Z";
@@ -46,4 +46,13 @@ export const FACE_ROTATIONS = {
   b: [0, Math.PI, 0],
   l: [0, -Math.PI / 2, 0],
   r: [0, Math.PI / 2, 0],
+};
+
+export type CFOPStage = "CROSS" | "F2L" | "OLL" | "PLL";
+
+export type CFOPState = {
+    stage: CFOPStage;
+    substage: string;
+    progress: number;
+    moves: MoveType[];
 };

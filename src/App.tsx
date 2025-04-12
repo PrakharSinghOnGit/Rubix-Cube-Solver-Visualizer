@@ -2,6 +2,8 @@ import { useState, useEffect, useRef } from "react";
 import styles from "./App.module.css";
 import { Cube } from "./core/cube";
 import { IDDFS } from "./core/IDDFS.ts";
+import { CFOP } from "./core/CFOP.ts";
+import { SolverType, MoveType } from "./types";
 
 // Componenrts
 import CubeView3d from "./components/CubeView3d";
@@ -14,13 +16,20 @@ import Header from "./components/Header";
 import LogsPanel from "./components/LogsPanel";
 import ResizeHandle from "./components/ui/ResizeHandle";
 import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
-import { SolverType } from "./types";
 
 function App() {
   const [size, setSize] = useState(3);
   const [cube, setCube] = useState(() => new Cube(size));
   const [isAnimating, setIsAnimating] = useState(false);
+  const [stats, setStats] = useState({
+    comparisonCount: 0,
+    timeTaken: 0,
+    moveCount: 0,
+  });
+  const [logs, setLogs] = useState<string[]>([]);
   const animationRef = useRef<ReturnType<typeof setTimeout>>(undefined);
+  const [isSolving, setIsSolving] = useState(false);
+  const workerRef = useRef<Worker | null>(null);
 
   useEffect(() => {
     setCube(new Cube(size));
@@ -31,6 +40,32 @@ function App() {
       if (animationRef.current) {
         clearTimeout(animationRef.current);
       }
+    };
+  }, []);
+
+  useEffect(() => {
+    // Initialize Web Worker
+    workerRef.current = new Worker(
+      new URL("./core/IDDFSWorker.ts", import.meta.url),
+      { type: "module" }
+    );
+
+    // Handle messages from worker
+    workerRef.current.onmessage = (e) => {
+      const { moves, comparisonCount, moveCount, timeTaken } = e.data;
+      setStats({
+        comparisonCount,
+        moveCount,
+        timeTaken
+      });
+      setLogs(moves.map((move: MoveType) => 
+        `${move.layer} ${move.axis} ${move.clockwise ? 'CW' : 'CCW'}`
+      ));
+      setIsSolving(false);
+    };
+
+    return () => {
+      workerRef.current?.terminate();
     };
   }, []);
 
@@ -112,16 +147,31 @@ function App() {
   };
 
   const handleSolver = async (solver: SolverType) => {
-    console.log("solving by " + solver);
+    if (isSolving) return;
+    
     if (solver === "IDDFS") {
-      const solver = new IDDFS(cube.getState());
-      solver.solve();
-      console.log(solver.comparisonCount);
-      console.log(solver.moveCount);
-      console.log(solver.timeTaken + " ms");
-      solver.moves.forEach((move) => {
-        handleRotate(move.layer, move.axis, move.clockwise);
+      setIsSolving(true);
+      workerRef.current?.postMessage({ cubeState: cube.getState() });
+    } else if (solver === "CFOP") {
+      const cfop = new CFOP(cube.getState());
+      const solution = cfop.solve();
+      const state = cfop.getState();
+      
+      setStats({
+        comparisonCount: cfop.comparisonCount,
+        moveCount: solution.length,
+        timeTaken: cfop.timeTaken
       });
+      setLogs(solution.map((move) => 
+        `${move.layer} ${move.axis} ${move.clockwise ? 'CW' : 'CCW'}`
+      ));
+      
+      // Apply moves with animation
+      for (const move of solution) {
+        await handleRotate(move.layer, move.axis, move.clockwise);
+        const anim = Number(localStorage.getItem("anim"));
+        await new Promise(resolve => setTimeout(resolve, anim));
+      }
     }
   };
 
@@ -165,7 +215,7 @@ function App() {
             />
             <Panel className={`${styles.panal} ${styles.leftPan}`}>
               <PanelLabel title="Solver" left={true} />
-              <SolverPanel setSolver={(solver) => handleSolver(solver)} />
+              <SolverPanel isSolved={cube.isSolved()} setSolver={(solver) => handleSolver(solver)} />
             </Panel>
           </PanelGroup>
         </Panel>
@@ -215,7 +265,7 @@ function App() {
               defaultSize={65}
             >
               <PanelLabel title="Algorithms" />
-              <StatsPanel />
+              <StatsPanel comparisonCount={stats.comparisonCount} timeTaken={stats.timeTaken} moveCount={stats.moveCount} />
             </Panel>
             <PanelResizeHandle
               children={<ResizeHandle vertical={true} />}
@@ -226,8 +276,8 @@ function App() {
               className={`${styles.panal} ${styles.rightPan}`}
               minSize={25}
             >
-              <PanelLabel title="Logs" />
-              <LogsPanel />
+              {/* <PanelLabel title="Logs" /> */}
+              <LogsPanel logs={logs} />
             </Panel>
           </PanelGroup>
         </Panel>

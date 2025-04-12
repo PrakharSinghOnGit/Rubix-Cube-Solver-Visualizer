@@ -58,22 +58,7 @@ export class Cube {
   }
 
   isSolved(): boolean {
-    const faceKeys = Object.keys(this.faces);
-    for (const face of faceKeys) {
-      // Find the center sticker value for this face.
-      const mid = Math.floor(this.size / 2);
-      const centerColor = this.faces[face][mid][mid];
-
-      // Check every sticker on this face.
-      for (let i = 0; i < this.size; i++) {
-        for (let j = 0; j < this.size; j++) {
-          if (this.faces[face][i][j] !== centerColor) {
-            return false;
-          }
-        }
-      }
-    }
-    return true;
+    return this.isFaceSolved(UP) && this.isFaceSolved(DOWN) && this.isFaceSolved(LEFT) && this.isFaceSolved(RIGHT) && this.isFaceSolved(FRONT) && this.isFaceSolved(BACK);
   }
 
   isFaceSolved(face: string): boolean {
@@ -134,10 +119,6 @@ export class Cube {
 
     // Update the cube state
     this.faces = rotatedFaces;
-    console.log("-=-=-=-=-=-=-=-=-");
-    console.log("LAYER: ", layer.join(", "));
-    console.log("AXIS: ", axis);
-    console.log("CLOCKWISE: ", clockwise);
   }
 
   rotateYLayer(
@@ -244,7 +225,6 @@ export class Cube {
         } else {
           newFace[i][j] = face[j][n - 1 - i];
         }
-        // newFace[j][n - 1 - i] = clockwise ? face[i][j] : face[n - 1 - j][i];
       }
     }
 
@@ -266,7 +246,7 @@ export class Cube {
   generateScrambleMoves(count: number = 20) {
     const axes: ("X" | "Y" | "Z")[] = ["X", "Y", "Z"];
     const moves = [];
-    const WIDE_MOVE_CHANCE = 0.2;
+    const WIDE_MOVE_CHANCE = 0; // TODO: fix wide implemetation
 
     for (let i = 0; i < count; i++) {
       const layer =
