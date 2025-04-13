@@ -364,9 +364,4 @@ export class Cube {
       );
     });
   }
-
-  heuristic(): number {
-    // TODO: Implement a heuristic function for the cube
-    return 0;
-  }
 }

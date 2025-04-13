@@ -1,6 +1,7 @@
 import { CubeType } from "../types.ts";
 import { Cube } from "./cube.ts";
 import { MoveType } from "../types.ts";
+import { heuristicMisplaced, heuristicManhattan } from "./heuristics.ts";
 
 export class IDAStar {
   Cube: Cube;
@@ -21,11 +22,11 @@ export class IDAStar {
   calculateMaxThreshold(size: number): number {
     // Adjust maximum threshold based on cube size (similar to IDDFS max depth)
     switch (size) {
-      case 2: return 11; // 2x2 optimal solutions are usually ≤ 11 moves
-      case 3: return 20; // 3x3 optimal solutions are usually ≤ 20 moves
-      case 4: return 30; // 4x4 optimal solutions are usually ≤ 30 moves
-      case 5: return 40; // 5x5 optimal solutions are usually ≤ 40 moves
-      default: return 50; // For larger cubes
+      case 2: return 20; 
+      case 3: return 50; 
+      case 4: return 70;
+      case 5: return 90; 
+      default: return 100;
     }
   }
 
@@ -72,7 +73,8 @@ export class IDAStar {
     const originalState = this.Cube.getState();
 
     // Initial threshold based on heuristic
-    let threshold = this.Cube.heuristic();
+    let threshold = heuristicManhattan(originalState);
+    // let threshold = 0.5 * heuristicMisplaced(originalState);
     console.log(`Initial threshold: ${threshold}`);
     
     // Recursive DFS function with depth limit returns:
@@ -82,7 +84,8 @@ export class IDAStar {
       this.comparisonCount++;
       
         // Calculate f(n) = g(n) + h(n)
-        const h  = this.Cube.heuristic();
+        const h  = heuristicManhattan(this.Cube.getState());
+        // const h = 0.5 * heuristicMisplaced(this.Cube.getState());
         const f = g + h;
 
         if (f > threshold) {

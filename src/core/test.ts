@@ -2,8 +2,8 @@ import { IDDFS } from "./IDDFS.ts";
 import { IDAStar } from "./IDAStar.ts";
 import { Cube } from "./cube.ts";
 
-const cube = new Cube(3);
-const moves = cube.generateScrambleMoves(2);
+const cube = new Cube(2);
+const moves = cube.generateScrambleMoves(10);
 
 // Scramble the cube
 moves.forEach((move) => {
