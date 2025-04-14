@@ -1,6 +1,6 @@
 import { Canvas } from "@react-three/fiber";
 import { OrbitControls } from "@react-three/drei";
-import { CubeType, FACE_COLORS, Zoom } from "../types";
+import { CubeType, FACE_COLORS, Zoom } from "../types/types";
 import { useThree } from "@react-three/fiber";
 import { useEffect } from "react";
 

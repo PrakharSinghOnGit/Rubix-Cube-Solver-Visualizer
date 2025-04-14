@@ -3,7 +3,7 @@ import NumberInp from "./ui/NumberInp";
 import SliderInp from "./ui/SliderInp";
 import Button from "./ui/Button";
 import InputCubeModal from "./InputCubeModal";
-import { MoveType } from "../types";
+import { MoveType } from "../types/types";
 
 export default function SettingsPanel({
   size,

@@ -1,4 +1,4 @@
-import { ContentDictionary } from "../types";
+import { ContentDictionary } from "../types/types";
 export const Content: ContentDictionary = {
   IDDFS: {
     title: "Iterative Deepening Depth First Search",

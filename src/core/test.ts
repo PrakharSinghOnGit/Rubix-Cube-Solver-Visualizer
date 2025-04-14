@@ -1,4 +1,3 @@
-import { IDDFS } from "./IDDFS.ts";
 import { IDAStar } from "./IDAStar.ts";
 import { Cube } from "./cube.ts";
 
@@ -23,5 +22,7 @@ console.log(idaStar.getState());
 console.log("Solution Moves:");
 idaStar.solutionMoves.forEach((move, index) => {
   const dir = move.clockwise ? "CW" : "CCW";
-  console.log(`${index + 1}. Axis: ${move.axis}, Layer: ${move.layer}, Direction: ${dir}`);
+  console.log(
+    `${index + 1}. Axis: ${move.axis}, Layer: ${move.layer}, Direction: ${dir}`
+  );
 });

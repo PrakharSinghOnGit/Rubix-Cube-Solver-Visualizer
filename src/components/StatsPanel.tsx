@@ -1,4 +1,4 @@
-import { AlgorithmContent, SolverStatType } from "../types";
+import { AlgorithmContent, SolverStatType } from "../types/types";
 
 interface StatsPanelProps {
   content?: AlgorithmContent;
