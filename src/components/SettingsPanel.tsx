@@ -11,6 +11,7 @@ export default function SettingsPanel({
   onRotate,
   onReset,
   isAnimating,
+  isSolving = false,
 }: {
   size: number;
   setCubeSize: (size: number) => void;
@@ -22,12 +23,15 @@ export default function SettingsPanel({
     clockwise: boolean
   ) => void;
   isAnimating: boolean;
+  isSolving?: boolean;
 }) {
   const [layerIndex, setLayerIndex] = useState(0);
   const [axis, setAxis] = useState<"X" | "Y" | "Z">("X");
   const [clockwise, setClockwise] = useState<boolean>(false);
   const [showInputModal, setShowInputModal] = useState<boolean>(false);
   const [newSize, setNewSize] = useState<number>(size);
+
+  const isDisabled = isAnimating || isSolving;
 
   function Seperator() {
     return (
@@ -57,19 +61,19 @@ export default function SettingsPanel({
           steps={1}
           onChange={(ns) => setNewSize(ns)}
         />
-        <Button onClick={() => setCubeSize(newSize)} disabled={isAnimating}>
+        <Button onClick={() => setCubeSize(newSize)} disabled={isDisabled}>
           Set Size
         </Button>
       </FlexBox>
       <FlexBox>
         <Button
           onClick={() => onReset()}
-          disabled={isAnimating}
+          disabled={isDisabled}
           className="hover:bg-amber-600"
         >
           Reset Cube
         </Button>
-        <Button onClick={() => setShowInputModal(true)} disabled={isAnimating}>
+        <Button onClick={() => setShowInputModal(true)} disabled={isDisabled}>
           Input Cube
         </Button>
       </FlexBox>
@@ -96,11 +100,11 @@ export default function SettingsPanel({
           onChange={(e) =>
             localStorage.setItem("scam", e.target.value.toString())
           }
-          disabled={isAnimating}
+          disabled={isDisabled}
         />
         <Button
           onClick={() => onScramble(Number(localStorage.getItem("scam")))}
-          disabled={isAnimating}
+          disabled={isDisabled}
         >
           Scramble
         </Button>
@@ -126,7 +130,7 @@ export default function SettingsPanel({
               setLayerIndex(value);
             }
           }}
-          disabled={isAnimating}
+          disabled={isDisabled}
         />
         <Button
           joinRight={true}
@@ -155,7 +159,7 @@ export default function SettingsPanel({
         <Button
           joinRight={true}
           onClick={() => setClockwise(true)}
-          disabled={isAnimating}
+          disabled={isDisabled}
           selected={clockwise}
         >
           CW
@@ -163,14 +167,14 @@ export default function SettingsPanel({
         <Button
           joinLeft={true}
           onClick={() => setClockwise(false)}
-          disabled={isAnimating}
+          disabled={isDisabled}
           selected={!clockwise}
         >
           CCW
         </Button>
         <Button
           onClick={() => onRotate(layerIndex, axis, clockwise)}
-          disabled={isAnimating}
+          disabled={isDisabled}
         >
           Move
         </Button>

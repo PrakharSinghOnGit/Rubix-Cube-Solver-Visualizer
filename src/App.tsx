@@ -1,12 +1,11 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import styles from "./App.module.css";
 import { Cube } from "./core/cube";
-import { IDDFS } from "./core/IDDFS.ts";
-import { IDAStar } from "./core/IDAStar.ts";
-import { CFOP } from "./core/CFOP.ts";
-import { SolverType, MoveType } from "./types";
+// import { CFOP } from "./core/CFOP.ts";
+import { SolverType, MoveType, SolverStatType } from "./types";
 
 // Componenrts
+import { Content } from "./core/Content.ts";
 import CubeView3d from "./components/CubeView3d";
 import CubeView2d from "./components/CubeView2d";
 import SettingsPanel from "./components/SettingsPanel";
@@ -22,15 +21,35 @@ function App() {
   const [size, setSize] = useState(3);
   const [cube, setCube] = useState(() => new Cube(size));
   const [isAnimating, setIsAnimating] = useState(false);
-  const [stats, setStats] = useState({
-    comparisonCount: 0,
-    timeTaken: 0,
-    moveCount: 0,
-  });
-  const [logs, setLogs] = useState<string[]>([]);
   const animationRef = useRef<ReturnType<typeof setTimeout>>(undefined);
-  const [isSolving, setIsSolving] = useState(false);
+  const [isSolving, setIsSolving] = useState<boolean>(false);
   const workerRef = useRef<Worker | null>(null);
+  const [solver, setSolver] = useState<SolverType>(null);
+  const moveHistoryRef = useRef<{
+    addMoveSet: (moves: MoveType[], title: string) => void;
+  }>(null);
+  const [solverStats, setSolverStats] = useState<SolverStatType>({
+    totalIterations: 0,
+    moveCount: 0,
+    comparisonCount: 0,
+    maxDepthReached: 0,
+    goalReached: false,
+    nodesExplored: 0,
+    searchTreeDepth: 0,
+    timeTaken: 0,
+    uniqueStates: 0,
+    backtracks: 0,
+    heuristicCost: 0,
+    statesPruned: 0,
+    peakMemoryUsed: 0,
+    openSetSize: 0,
+    closedSetSize: 0,
+    totalStatesInMemory: 0,
+    solvedFaces: 0,
+    heuristicEstimate: 0,
+    solutionPathLength: 0,
+  });
+  const statsIntervalRef = useRef<number | null>(null);
 
   useEffect(() => {
     setCube(new Cube(size));
@@ -44,6 +63,31 @@ function App() {
     };
   }, []);
 
+  const applySolution = useCallback(
+    async (solution: MoveType[]) => {
+      setIsAnimating(true);
+      for (const move of solution) {
+        cube.rotate(move.layer, move.axis, move.clockwise);
+
+        // Create a new cube with the current state
+        const newCube = new Cube(size);
+        newCube.faces = { ...cube.faces };
+        setCube(newCube);
+
+        const anim = Number(localStorage.getItem("anim")) || 100;
+        await new Promise((resolve) => setTimeout(resolve, anim));
+      }
+      setIsAnimating(false);
+    },
+    [cube, size]
+  );
+
+  const handleApplyMove = (move: MoveType) => {
+    // Apply the move to the cube
+    cube.rotate(move.layer, move.axis, move.clockwise);
+    setCube(cube);
+  };
+
   useEffect(() => {
     // Initialize Web Worker
     workerRef.current = new Worker(
@@ -53,22 +97,29 @@ function App() {
 
     // Handle messages from worker
     workerRef.current.onmessage = (e) => {
-      const { moves, comparisonCount, moveCount, timeTaken } = e.data;
-      setStats({
-        comparisonCount,
-        moveCount,
-        timeTaken
-      });
-      setLogs(moves.map((move: MoveType) => 
-        `${move.layer} ${move.axis} ${move.clockwise ? 'CW' : 'CCW'}`
-      ));
+      const solverData = e.data;
+
+      setSolverStats(solverData);
+
+      // Add moves to history
+      if (solverData.moves && solverData.moves.length > 0) {
+        // Add moves to history
+        moveHistoryRef.current?.addMoveSet(
+          solverData.moves,
+          `Solved by ${solver}`
+        );
+
+        // Apply the solution
+        applySolution(solverData.moves);
+      }
+
       setIsSolving(false);
     };
 
     return () => {
       workerRef.current?.terminate();
     };
-  }, []);
+  }, [solver, applySolution]);
 
   const handleScramble = async (count: number) => {
     if (isAnimating) return;
@@ -76,6 +127,10 @@ function App() {
     setIsAnimating(true);
     const newCube = new Cube(size);
     const moves = newCube.generateScrambleMoves(count);
+
+    // Add scramble moves to history
+    console.log("Scramble moves:", moves);
+    moveHistoryRef.current?.addMoveSet(moves, `Scrambled - ${count} moves`);
 
     for (let i = 0; i < moves.length; i++) {
       const move = moves[i];
@@ -147,39 +202,58 @@ function App() {
     setCube(resetCube);
   };
 
-  const handleSolver = async (solver: SolverType) => {
-    if (isSolving) return;
-    
-    if (solver === "IDDFS") {
-      setIsSolving(true);
-      workerRef.current?.postMessage({ solver: "IDDFS", cubeState: cube.getState() });
-    } 
-    
-    else if (solver === "IDA*") {
-      setIsSolving(true);
-      workerRef.current?.postMessage({ solver: "IDA*", cubeState: cube.getState() });
+  const clearStatsInterval = () => {
+    if (statsIntervalRef.current) {
+      clearInterval(statsIntervalRef.current);
+      statsIntervalRef.current = null;
     }
-    
-    else if (solver === "CFOP") {
-      const cfop = new CFOP(cube.getState());
-      const solution = cfop.solve();
-      const state = cfop.getState();
-      
-      setStats({
-        comparisonCount: cfop.comparisonCount,
-        moveCount: solution.length,
-        timeTaken: cfop.timeTaken
-      });
-      setLogs(solution.map((move) => 
-        `${move.layer} ${move.axis} ${move.clockwise ? 'CW' : 'CCW'}`
-      ));
-      
-      // Apply moves with animation
-      for (const move of solution) {
-        await handleRotate(move.layer, move.axis, move.clockwise);
-        const anim = Number(localStorage.getItem("anim"));
-        await new Promise(resolve => setTimeout(resolve, anim));
+  };
+
+  const handleSolver = async (solverType: SolverType) => {
+    if (isSolving || isAnimating) return;
+
+    setSolver(solverType);
+    setIsSolving(true);
+    clearStatsInterval();
+
+    // Reset stats
+    setSolverStats(solverStats);
+
+    // For visual feedback, update stats every 500ms
+    const startTime = Date.now();
+    statsIntervalRef.current = window.setInterval(() => {
+      setSolverStats((prev) => ({
+        ...prev,
+        timeTaken: Date.now() - startTime,
+      }));
+    }, 500);
+
+    try {
+      if (solverType === "IDDFS") {
+        workerRef.current?.postMessage({
+          solver: "IDDFS",
+          cubeState: cube.getState(),
+        });
+        // The worker message handler will handle the rest
+        return;
+      } else if (solverType === "IDA*") {
+        workerRef.current?.postMessage({
+          solver: "IDA*",
+          cubeState: cube.getState(),
+        });
+        // The worker message handler will handle the rest
+        return;
+      } else if (solverType === "CFOP") {
+        console.log("TO be Implemented");
+      } else {
+        console.log("No solution found or cube already solved");
       }
+      setIsSolving(false);
+    } catch (error) {
+      console.error("Solver error:", error);
+      setIsSolving(false);
+    } finally {
+      clearStatsInterval();
     }
   };
 
@@ -208,12 +282,13 @@ function App() {
             >
               <PanelLabel title="Settings" left={true} />
               <SettingsPanel
+                size={size}
+                setCubeSize={setSize}
+                onScramble={handleScramble}
                 onReset={handleReset}
                 onRotate={handleRotate}
-                setCubeSize={setSize}
-                size={size}
-                onScramble={handleScramble}
                 isAnimating={isAnimating}
+                isSolving={isSolving}
               />
             </Panel>
             <PanelResizeHandle
@@ -223,7 +298,13 @@ function App() {
             />
             <Panel className={`${styles.panal} ${styles.leftPan}`}>
               <PanelLabel title="Solver" left={true} />
-              <SolverPanel isSolved={cube.isSolved()} setSolver={(solver) => handleSolver(solver)} />
+              <SolverPanel
+                solver={solver}
+                isWorking={isSolving || isAnimating}
+                isSolved={cube.isSolved()}
+                setSolver={(solver) => setSolver(solver)}
+                onSolve={handleSolver}
+              />
             </Panel>
           </PanelGroup>
         </Panel>
@@ -242,7 +323,10 @@ function App() {
               className={styles.renderContainer}
             >
               <PanelLabel title="3d Cube View" />
-              <CubeView3d cubeState={cube.getState()} />
+              <CubeView3d
+                isSolved={cube.isSolved()}
+                cubeState={cube.getState()}
+              />
             </Panel>
             <PanelResizeHandle
               children={<ResizeHandle vertical={true} />}
@@ -272,8 +356,10 @@ function App() {
               minSize={25}
               defaultSize={65}
             >
-              <PanelLabel title="Algorithms" />
-              <StatsPanel comparisonCount={stats.comparisonCount} timeTaken={stats.timeTaken} moveCount={stats.moveCount} />
+              <StatsPanel
+                solverStats={solverStats}
+                content={solver ? Content[solver] : undefined}
+              />
             </Panel>
             <PanelResizeHandle
               children={<ResizeHandle vertical={true} />}
@@ -284,8 +370,8 @@ function App() {
               className={`${styles.panal} ${styles.rightPan}`}
               minSize={25}
             >
-              {/* <PanelLabel title="Logs" /> */}
-              <LogsPanel logs={logs} />
+              <PanelLabel title="Move Logs" left={true} />
+              <LogsPanel onApplyMove={handleApplyMove} ref={moveHistoryRef} />
             </Panel>
           </PanelGroup>
         </Panel>

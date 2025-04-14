@@ -1,61 +1,127 @@
+import { useState, forwardRef, useImperativeHandle } from "react";
+import { MoveType } from "../types";
+import MoveTable from "./ui/MoveTable";
+import Button from "./ui/Button";
 
 interface LogsPanelProps {
-  logs: string[];
+  onApplyMove?: (move: MoveType) => void;
 }
 
-export default function LogsPanel({ logs }: LogsPanelProps) {
-  const getMoveNotation = (log: string): string => {
-    const [layer, axis, direction] = log.split(' ');
-    let notation = "";
-    
-    // Determine the face
-    switch (axis) {
-      case "X":
-        notation = layer === "0" ? "L" : "R";
-        break;
-      case "Y":
-        notation = layer === "0" ? "D" : "U";
-        break;
-      case "Z":
-        notation = layer === "0" ? "B" : "F";
-        break;
-    }
-    
-    // Add ' for counterclockwise
-    if (direction === "CCW") {
-      notation += "'";
-    }
-    
-    return notation;
-  };
-
-  return (
-    <div className="overflow-x-auto">
-      <table className="min-w-full bg-gray-800 text-white">
-        <thead>
-          <tr>
-            <th className="px-4 py-2">#</th>
-            <th className="px-4 py-2">Move</th>
-            <th className="px-4 py-2">Axis</th>
-            <th className="px-4 py-2">Layer</th>
-            <th className="px-4 py-2">Direction</th>
-          </tr>
-        </thead>
-        <tbody>
-          {logs.map((log, index) => {
-            const [layer, axis, direction] = log.split(' ');
-            return (
-              <tr key={index} className="border-t border-gray-700">
-                <td className="px-4 py-2 text-center">{index + 1}</td>
-                <td className="px-4 py-2 text-center font-mono">{getMoveNotation(log)}</td>
-                <td className="px-4 py-2 text-center">{axis}</td>
-                <td className="px-4 py-2 text-center">{layer}</td>
-                <td className="px-4 py-2 text-center">{direction}</td>
-              </tr>
-            );
-          })}
-        </tbody>
-      </table>
-    </div>
-  );
+interface HistoryEntry {
+  id: string;
+  title: string;
+  moves: MoveType[];
+  timestamp: Date;
 }
+
+export interface LogsPanelRef {
+  addMoveSet: (moves: MoveType[], title: string) => void;
+}
+
+const LogsPanel = forwardRef<LogsPanelRef, LogsPanelProps>(
+  ({ onApplyMove }, ref) => {
+    const [history, setHistory] = useState<HistoryEntry[]>([]);
+    const [collapsedEntries, setCollapsedEntries] = useState<Set<string>>(
+      new Set()
+    );
+
+    const addMoveSet = (moves: MoveType[], title: string) => {
+      const newEntry: HistoryEntry = {
+        id: Date.now().toString(),
+        title,
+        moves,
+        timestamp: new Date(),
+      };
+      setHistory((prev) => [newEntry, ...prev]);
+    };
+
+    const clearHistory = () => {
+      setHistory([]);
+    };
+
+    const handleReapply = (moves: MoveType[]) => {
+      moves.forEach((move) => onApplyMove?.(move));
+    };
+
+    const handleReverse = (moves: MoveType[]) => {
+      [...moves].reverse().forEach((move) => {
+        onApplyMove?.({
+          ...move,
+          clockwise: !move.clockwise,
+        });
+      });
+    };
+
+    useImperativeHandle(ref, () => ({
+      addMoveSet,
+    }));
+
+    const toggleCollapseAll = () => {
+      if (collapsedEntries.size === history.length) {
+        // If all are collapsed, expand all
+        setCollapsedEntries(new Set());
+      } else {
+        // Collapse all
+        const allIds = new Set(history.map((entry) => entry.id));
+        setCollapsedEntries(allIds);
+      }
+    };
+
+    const toggleCollapse = (id: string) => {
+      setCollapsedEntries((prev) => {
+        const newSet = new Set(prev);
+        if (newSet.has(id)) {
+          newSet.delete(id);
+        } else {
+          newSet.add(id);
+        }
+        return newSet;
+      });
+    };
+
+    return (
+      <div className="h-full overflow-scroll">
+        <div className="w-full flex p-2 gap-2 items-center">
+          <div className="w-full"></div>
+          <Button
+            size="small"
+            className="float-left"
+            mainColor="blue"
+            onClick={toggleCollapseAll}
+          >
+            {collapsedEntries.size === history.length ? "Expand" : "Collapse"}
+          </Button>
+          <Button
+            size="small"
+            className="float-left"
+            mainColor="red"
+            onClick={clearHistory}
+          >
+            Clear
+          </Button>
+        </div>
+
+        <div className="p-2">
+          {history.map((entry) => (
+            <MoveTable
+              key={entry.id}
+              id={entry.id}
+              title={entry.title}
+              timestamp={entry.timestamp}
+              moves={entry.moves}
+              onApply={onApplyMove}
+              onReapply={handleReapply}
+              onReverse={handleReverse}
+              isCollapsed={collapsedEntries.has(entry.id)}
+              onToggleCollapse={toggleCollapse}
+            />
+          ))}
+        </div>
+      </div>
+    );
+  }
+);
+
+LogsPanel.displayName = "LogsPanel";
+
+export default LogsPanel;

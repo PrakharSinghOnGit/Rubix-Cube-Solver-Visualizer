@@ -8,7 +8,42 @@ export type CubeType = {
   b: string[][];
 };
 
-export type SolverType = "IDDFS" | "BFS" | "IDA*" |"CFOP";
+export type SolverStatType = {
+  timeTaken: number;
+  totalIterations: number;
+  moveCount: number;
+  comparisonCount: number;
+  maxDepthReached: number;
+  goalReached: boolean;
+  nodesExplored: number;
+  searchTreeDepth: number;
+  uniqueStates: number;
+  backtracks: number;
+  heuristicCost: number;
+  statesPruned: number;
+  peakMemoryUsed: number;
+  openSetSize: number;
+  closedSetSize: number;
+  totalStatesInMemory: number;
+  solvedFaces: number;
+  heuristicEstimate: number;
+  solutionPathLength: number;
+};
+
+export interface AlgorithmContent {
+  title: string;
+  description: string;
+  complexity: string;
+  steps?: string[];
+  advantages?: string[];
+  disadvantages?: string[];
+}
+
+export interface ContentDictionary {
+  [key: string]: AlgorithmContent;
+}
+
+export type SolverType = null | "IDDFS" | "BFS" | "IDA*" | "CFOP";
 export type MoveType = {
   layer: number | number[];
   axis: "X" | "Y" | "Z";
@@ -51,8 +86,8 @@ export const FACE_ROTATIONS = {
 export type CFOPStage = "CROSS" | "F2L" | "OLL" | "PLL";
 
 export type CFOPState = {
-    stage: CFOPStage;
-    substage: string;
-    progress: number;
-    moves: MoveType[];
+  stage: CFOPStage;
+  substage: string;
+  progress: number;
+  moves: MoveType[];
 };

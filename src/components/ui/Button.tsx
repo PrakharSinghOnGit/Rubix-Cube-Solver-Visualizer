@@ -1,7 +1,9 @@
 import { ReactNode } from "react";
 
 interface ButtonProps {
+  size?: "small" | "medium";
   children: ReactNode;
+  mainColor?: string;
   variant?: "contained" | "outlined" | "text";
   className?: string;
   onClick?: () => void;
@@ -13,8 +15,10 @@ interface ButtonProps {
 }
 
 export default function Button({
+  size = "medium",
   children,
   onClick,
+  mainColor = "blue",
   disabled = false,
   className = "",
   joinRight = false,
@@ -24,14 +28,24 @@ export default function Button({
 }: ButtonProps) {
   return (
     <button
+      aria-disabled={disabled}
       className={`
-    relative text-white p-2 grow flex justify-center items-center cursor-pointer outline-none rounded-[15px] 
+    relative text-white grow flex justify-center items-center cursor-pointer outline-none border-1
+     ${size === "small" ? "p-1 rounded-[5px] text-sm" : "p-2 rounded-[15px]"}
      ${joinLeft ? "rounded-l-none" : ""}
-      ${disabled ? "cursor-not-allowed" : "cursor-pointer"} 
-      ${joinRight ? "rounded-r-none" : ""}
-      ${selected ? "bg-blue-500 hover:bg-blue-400" : " hover:bg-blue-600"}
-      ${filled ? "bg-blue-500" : "border-blue-400 border-1"}
-    ${className}`}
+     ${joinRight ? "rounded-r-none" : ""}
+     ${selected ? `bg-${mainColor}-500 hover:bg-${mainColor}-400` : ``}
+     ${
+       filled
+         ? disabled
+           ? "bg-gray-700"
+           : `bg-${mainColor}-500`
+         : disabled
+         ? "hover:bg-gray-700 border-gray-400"
+         : `border-${mainColor}-400 hover:bg-${mainColor}-600`
+     }
+     ${disabled ? "cursor-not-allowed" : "cursor-pointer"} 
+     ${className}`}
       onClick={onClick}
       disabled={disabled}
     >

@@ -1,24 +1,12 @@
-import { useState } from "react";
 import Button from "./ui/Button";
+import { CubeType } from "../types";
 
 interface InputCubeModalProps {
   onClose: () => void;
-  onSubmit?: (cubeState: any) => void;
+  onSubmit?: (cubeState: CubeType) => void;
 }
 
-export default function InputCubeModal({
-  onClose,
-  onSubmit,
-}: InputCubeModalProps) {
-  const [cubeState, setCubeState] = useState({});
-
-  const handleSubmit = () => {
-    if (onSubmit) {
-      onSubmit(cubeState);
-    }
-    onClose();
-  };
-
+export default function InputCubeModal({ onClose }: InputCubeModalProps) {
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
       <div className="bg-white p-6 rounded-lg shadow-lg max-w-2xl w-full">
@@ -69,10 +57,7 @@ export default function InputCubeModal({
           >
             Cancel
           </Button>
-          <Button
-            onClick={handleSubmit}
-            className="bg-blue-500 hover:bg-blue-600 text-white"
-          >
+          <Button className="bg-blue-500 hover:bg-blue-600 text-white">
             Apply
           </Button>
         </div>

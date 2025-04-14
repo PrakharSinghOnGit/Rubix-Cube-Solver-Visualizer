@@ -48,8 +48,7 @@ function CubeProjection({ cubeState }: { cubeState: CubeType }) {
   //     : cubeState.size / 2 - 1 + 0.5;
   const yOff = (cubeState.size - 1) / 2;
   const drawFace = (x: number, y: number, face: string[][]) => {
-
-    const rotatedFace = face.map((row, i) => 
+    const rotatedFace = face.map((row, i) =>
       row.map((_, j) => face[j][face.length - 1 - i])
     );
 

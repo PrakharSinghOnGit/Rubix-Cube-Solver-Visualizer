@@ -2,39 +2,60 @@ import Button from "./ui/Button";
 import { SolverType } from "../types";
 
 export default function SolverPanel({
-  setSolver,isSolved
+  solver,
+  isWorking,
+  setSolver,
+  isSolved,
+  onSolve,
 }: {
+  solver: SolverType;
+  isWorking: boolean;
   setSolver: (solver: SolverType) => void;
-  isSolved:boolean;
+  isSolved: boolean;
+  onSolve: (solver: SolverType) => void;
 }) {
   return (
-    <div className="mt-5 p-3">
-      {isSolved && <div className="text-green-500 text-center mb-3">Cube is solved!</div>}
-      {!isSolved && <div className="text-red-500 text-center mb-3">Cube is not solved!</div>}
-      <Button
-        onClick={() => {
-          setSolver("IDDFS");
-        }}
-        className="w-full mt-3"
-      >
-        IDDFS
-      </Button>
-      <Button
-        onClick={() => {
-          setSolver("CFOP");
-        }}
-        className="w-full mt-3"
-      >
-        CFOP
-      </Button>
-      <Button
-        onClick={() => {
-          setSolver("IDA*");
-        }}
-        className="w-full mt-3"
-      >
-        IDA*
-      </Button>
+    <div className="p-3 flex flex-col h-full">
+      <div className="grow overflow-scroll">
+        <div className="text-right mb-4">
+          {solver === null && "Select a solver"}
+          {solver != null && "."}
+        </div>
+        <Button
+          disabled={isWorking}
+          selected={solver === "IDDFS"}
+          onClick={() => setSolver("IDDFS")}
+          className="w-full mb-3"
+        >
+          IDDFS
+        </Button>
+        <Button
+          disabled={isWorking}
+          selected={solver === "CFOP"}
+          onClick={() => setSolver("CFOP")}
+          className="w-full mb-3"
+        >
+          CFOP
+        </Button>
+        <Button
+          disabled={isWorking}
+          selected={solver === "IDA*"}
+          onClick={() => setSolver("IDA*")}
+          className="w-full mb-3"
+        >
+          IDA*
+        </Button>
+      </div>
+      <div>
+        <Button
+          onClick={() => onSolve(solver)}
+          disabled={isWorking || isSolved || solver === null}
+          mainColor={"green"}
+          className="w-full"
+        >
+          Solve
+        </Button>
+      </div>
     </div>
   );
 }

@@ -1,5 +1,5 @@
 import { Canvas, useThree } from "@react-three/fiber";
-import { OrbitControls,Text } from "@react-three/drei";
+import { OrbitControls, Text } from "@react-three/drei";
 import * as THREE from "three";
 import {
   FACE_COLORS,
@@ -19,7 +19,13 @@ function CameraSetup({ size }: { size: number }) {
   return null;
 }
 
-export default function CubeView3d({ cubeState }: { cubeState: CubeType }) {
+export default function CubeView3d({
+  cubeState,
+  isSolved,
+}: {
+  cubeState: CubeType;
+  isSolved: boolean;
+}) {
   const canvasRef = useRef<HTMLDivElement>(null);
   const GAP = 0.05;
 
@@ -60,25 +66,25 @@ export default function CubeView3d({ cubeState }: { cubeState: CubeType }) {
     const color = FACE_COLORS[col as keyof typeof FACE_COLORS];
     return (
       <group
-      position={new THREE.Vector3(...pos)}
-      rotation={new THREE.Euler(...rot)}
-    >
-      <mesh>
-        <planeGeometry args={[1, 1]} />
-        <meshStandardMaterial color={color} />
-      </mesh>
+        position={new THREE.Vector3(...pos)}
+        rotation={new THREE.Euler(...rot)}
+      >
+        <mesh>
+          <planeGeometry args={[1, 1]} />
+          <meshStandardMaterial color={color} />
+        </mesh>
 
-      {text && (
-        <Text
-          position={[0, 0, 0.01]}
-          fontSize={0.3}
-          color="black"
-          anchorX="center"
-          anchorY="middle"
-        >
-          {text}
-        </Text>
-      )}
+        {text && (
+          <Text
+            position={[0, 0, 0.01]}
+            fontSize={0.3}
+            color="black"
+            anchorX="center"
+            anchorY="middle"
+          >
+            {text}
+          </Text>
+        )}
 
         <meshStandardMaterial color="black" />
       </group>
@@ -121,6 +127,13 @@ export default function CubeView3d({ cubeState }: { cubeState: CubeType }) {
         height: "100%",
       }}
     >
+      <div
+        className={`p-2 absolute right-0 rounded-[15px] font-bold ${
+          isSolved ? "text-green-400" : "text-red-400"
+        }`}
+      >
+        {isSolved ? "Solved" : "UnSolved"}
+      </div>
       <Canvas>
         <CameraSetup size={cubeState.size} />
         <Face size={cubeState.size} face={"b"} colors={cubeState.b} />
@@ -131,11 +144,11 @@ export default function CubeView3d({ cubeState }: { cubeState: CubeType }) {
         <Face size={cubeState.size} face={"r"} colors={cubeState.r} />
         <ambientLight intensity={2} />
         <OrbitControls
-          enablePan={true}
+          enablePan={false}
           enableZoom={true}
           enableRotate={true}
           target={[0, 0, 0]}
-          minDistance={cubeState.size * 0.5}
+          minDistance={cubeState.size * 1}
           maxDistance={cubeState.size * 3}
           enableDamping={true}
           dampingFactor={0.05}
