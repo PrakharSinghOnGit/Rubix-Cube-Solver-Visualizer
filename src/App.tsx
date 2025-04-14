@@ -63,140 +63,42 @@ function App() {
     };
   }, []);
 
-  const applySolution = useCallback(
-    async (solution: MoveType[]) => {
-      setIsAnimating(true);
-      for (const move of solution) {
-        cube.rotate(move.layer, move.axis, move.clockwise);
-
-        // Create a new cube with the current state
-        const newCube = new Cube(size);
-        newCube.faces = { ...cube.faces };
-        setCube(newCube);
-
-        const anim = Number(localStorage.getItem("anim")) || 100;
-        await new Promise((resolve) => setTimeout(resolve, anim));
-      }
-      setIsAnimating(false);
-    },
-    [cube, size]
-  );
-
-  const handleApplyMove = (move: MoveType) => {
-    // Apply the move to the cube
-    cube.rotate(move.layer, move.axis, move.clockwise);
-    setCube(cube);
-  };
-
-  useEffect(() => {
-    // Initialize Web Worker
-    workerRef.current = new Worker(
-      new URL("./core/Worker.ts", import.meta.url),
-      { type: "module" }
-    );
-
-    // Handle messages from worker
-    workerRef.current.onmessage = (e) => {
-      const solverData = e.data;
-
-      setSolverStats(solverData);
-
-      // Add moves to history
-      if (solverData.moves && solverData.moves.length > 0) {
-        // Add moves to history
-        moveHistoryRef.current?.addMoveSet(
-          solverData.moves,
-          `Solved by ${solver}`
-        );
-
-        // Apply the solution
-        applySolution(solverData.moves);
-      }
-
-      setIsSolving(false);
-    };
-
-    return () => {
-      workerRef.current?.terminate();
-    };
-  }, [solver, applySolution]);
-
   const handleScramble = async (count: number) => {
     if (isAnimating) return;
+    const moves = cube.generateScrambleMoves(count);
+    moveHistoryRef.current?.addMoveSet(moves, `Scrambled - ${count}`);
+    handleRotate(moves);
+  };
 
-    setIsAnimating(true);
-    const newCube = new Cube(size);
-    const moves = newCube.generateScrambleMoves(count);
-
-    // Add scramble moves to history
-    console.log("Scramble moves:", moves);
-    moveHistoryRef.current?.addMoveSet(moves, `Scrambled - ${count} moves`);
-
-    for (let i = 0; i < moves.length; i++) {
-      const move = moves[i];
-      newCube.rotate(move.layer, move.axis, move.clockwise);
-
-      // Create a new cube instance with the updated state
-      const updatedCube = new Cube(size);
-      updatedCube.faces = {
-        u: newCube.faces.u,
-        d: newCube.faces.d,
-        l: newCube.faces.l,
-        r: newCube.faces.r,
-        f: newCube.faces.f,
-        b: newCube.faces.b,
-      };
-      setCube(updatedCube);
-
+  const handleRotate = useCallback(
+    async (moves: MoveType | MoveType[]) => {
+      if (isAnimating) return;
       const anim = Number(localStorage.getItem("anim"));
-      if (anim != 0) {
-        await new Promise((resolve) => {
-          animationRef.current = setTimeout(resolve, anim);
-        });
+      setIsAnimating(true);
+      if (!Array.isArray(moves)) {
+        moves = [moves];
       }
-    }
 
-    setIsAnimating(false);
-  };
+      for (let i = 0; i < moves.length; i++) {
+        const move = moves[i];
+        cube.rotate(move.layer, move.axis, move.clockwise);
+        const newCube = new Cube(size);
+        newCube.setState(cube.getState());
+        setCube(newCube);
+        if (anim != 0) {
+          await new Promise((resolve) => {
+            animationRef.current = setTimeout(resolve, anim);
+          });
+        }
+      }
 
-  const handleRotate = async (
-    layerIndex: number | number[],
-    axis: "X" | "Y" | "Z",
-    clockwise: boolean
-  ) => {
-    if (isAnimating) return;
-
-    setIsAnimating(true);
-
-    // Rotate the specified layer
-    cube.rotate(layerIndex, axis, clockwise);
-
-    // Create a new cube instance with the updated state
-    const updatedCube = new Cube(size);
-    updatedCube.faces = {
-      u: cube.faces.u,
-      d: cube.faces.d,
-      l: cube.faces.l,
-      r: cube.faces.r,
-      f: cube.faces.f,
-      b: cube.faces.b,
-    };
-    setCube(updatedCube);
-
-    // Wait for the animation speed duration
-    const anim = Number(localStorage.getItem("anim"));
-    if (anim != 0) {
-      await new Promise((resolve) => {
-        animationRef.current = setTimeout(resolve, anim);
-      });
-    }
-
-    setIsAnimating(false);
-  };
+      setIsAnimating(false);
+    },
+    [cube, isAnimating, size]
+  );
 
   const handleReset = () => {
     if (isAnimating) return;
-
     // Create a new cube instance with the initial state
     const resetCube = new Cube(size);
     setCube(resetCube);
@@ -256,6 +158,46 @@ function App() {
       clearStatsInterval();
     }
   };
+
+  const applySolution = useCallback(
+    async (solution: MoveType[]) => {
+      await handleRotate(solution);
+    },
+    [handleRotate]
+  );
+
+  useEffect(() => {
+    // Initialize Web Worker
+    workerRef.current = new Worker(
+      new URL("./core/Worker.ts", import.meta.url),
+      { type: "module" }
+    );
+
+    // Handle messages from worker
+    workerRef.current.onmessage = (e) => {
+      const solverData = e.data;
+
+      setSolverStats(solverData);
+
+      // Add moves to history
+      if (solverData.moves && solverData.moves.length > 0) {
+        // Add moves to history
+        moveHistoryRef.current?.addMoveSet(
+          solverData.moves,
+          `Solved by ${solver}`
+        );
+
+        // Apply the solution
+        applySolution(solverData.moves);
+      }
+
+      setIsSolving(false);
+    };
+
+    return () => {
+      workerRef.current?.terminate();
+    };
+  }, [solver, applySolution]);
 
   return (
     <div className="flex h-screen w-screen overflow-visible p-3 pr-0 pl-0">
@@ -371,7 +313,7 @@ function App() {
               minSize={25}
             >
               <PanelLabel title="Move Logs" left={true} />
-              <LogsPanel onApplyMove={handleApplyMove} ref={moveHistoryRef} />
+              <LogsPanel onApplyMove={handleRotate} ref={moveHistoryRef} />
             </Panel>
           </PanelGroup>
         </Panel>

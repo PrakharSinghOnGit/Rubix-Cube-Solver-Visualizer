@@ -1,10 +1,10 @@
 import { useState, forwardRef, useImperativeHandle } from "react";
 import { MoveType } from "../types";
 import MoveTable from "./ui/MoveTable";
-import Button from "./ui/Button";
+import { CollapseAll, Cross, ExpandAll } from "./ui/icons";
 
 interface LogsPanelProps {
-  onApplyMove?: (move: MoveType) => void;
+  onApplyMove?: (move: MoveType[]) => void;
 }
 
 interface HistoryEntry {
@@ -39,29 +39,14 @@ const LogsPanel = forwardRef<LogsPanelRef, LogsPanelProps>(
       setHistory([]);
     };
 
-    const handleReapply = (moves: MoveType[]) => {
-      moves.forEach((move) => onApplyMove?.(move));
-    };
-
-    const handleReverse = (moves: MoveType[]) => {
-      [...moves].reverse().forEach((move) => {
-        onApplyMove?.({
-          ...move,
-          clockwise: !move.clockwise,
-        });
-      });
-    };
-
     useImperativeHandle(ref, () => ({
       addMoveSet,
     }));
 
     const toggleCollapseAll = () => {
       if (collapsedEntries.size === history.length) {
-        // If all are collapsed, expand all
         setCollapsedEntries(new Set());
       } else {
-        // Collapse all
         const allIds = new Set(history.map((entry) => entry.id));
         setCollapsedEntries(allIds);
       }
@@ -83,22 +68,23 @@ const LogsPanel = forwardRef<LogsPanelRef, LogsPanelProps>(
       <div className="h-full overflow-scroll">
         <div className="w-full flex p-2 gap-2 items-center">
           <div className="w-full"></div>
-          <Button
-            size="small"
-            className="float-left"
-            mainColor="blue"
+          <div
+            title={
+              collapsedEntries.size === history.length
+                ? "Expand All"
+                : "Collapse All"
+            }
             onClick={toggleCollapseAll}
           >
-            {collapsedEntries.size === history.length ? "Expand" : "Collapse"}
-          </Button>
-          <Button
-            size="small"
-            className="float-left"
-            mainColor="red"
-            onClick={clearHistory}
-          >
-            Clear
-          </Button>
+            {collapsedEntries.size === history.length ? (
+              <ExpandAll hex="#fff" />
+            ) : (
+              <CollapseAll hex="#fff" />
+            )}
+          </div>
+          <div title="Clear All" onClick={clearHistory}>
+            <Cross hex="#fff" />
+          </div>
         </div>
 
         <div className="p-2">
@@ -110,8 +96,6 @@ const LogsPanel = forwardRef<LogsPanelRef, LogsPanelProps>(
               timestamp={entry.timestamp}
               moves={entry.moves}
               onApply={onApplyMove}
-              onReapply={handleReapply}
-              onReverse={handleReverse}
               isCollapsed={collapsedEntries.has(entry.id)}
               onToggleCollapse={toggleCollapse}
             />

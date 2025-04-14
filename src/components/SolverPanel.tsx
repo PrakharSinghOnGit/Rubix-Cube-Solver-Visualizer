@@ -50,7 +50,7 @@ export default function SolverPanel({
         <Button
           onClick={() => onSolve(solver)}
           disabled={isWorking || isSolved || solver === null}
-          mainColor={"green"}
+          color="green"
           className="w-full"
         >
           Solve

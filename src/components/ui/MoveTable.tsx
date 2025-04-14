@@ -1,5 +1,5 @@
 import { MoveType } from "../../types";
-import Button from "./Button";
+import { Collapse, DoubleRightArrow, Expand, Redo } from "./icons";
 
 interface MoveTableProps {
   id: string;
@@ -7,7 +7,7 @@ interface MoveTableProps {
   title: string;
   timestamp: Date;
   moves: MoveType[];
-  onApply?: (move: MoveType) => void;
+  onApply?: (move: MoveType[]) => void;
   onReapply?: (moves: MoveType[]) => void;
   onReverse?: (moves: MoveType[]) => void;
   onToggleCollapse?: (id: string) => void;
@@ -20,8 +20,6 @@ const MoveTable = ({
   timestamp,
   moves,
   onApply,
-  onReapply,
-  onReverse,
   onToggleCollapse,
 }: MoveTableProps) => {
   const formatMove = (move: MoveType) => {
@@ -33,7 +31,7 @@ const MoveTable = ({
 
   const handleToogleCollapse = (e: React.MouseEvent<HTMLElement>) => {
     e.stopPropagation();
-    if (!(e.target instanceof HTMLButtonElement))
+    if (!(e.target instanceof SVGElement))
       if (onToggleCollapse) {
         onToggleCollapse(id);
       }
@@ -46,32 +44,46 @@ const MoveTable = ({
         className="flex items-center justify-between p-2 hover:border-blue-400 hover:bg-gray-800 rounded-[15px]"
       >
         <div className="flex gap-2 items-center">
-          <span>{isCollapsed ? "▼" : "▶︎"}</span>
-          <span className="text-xl font-bold">{title}</span>
+          <span>{isCollapsed ? <Expand /> : <Collapse />}</span>
+          <span className="text-medium select-none">{title}</span>
         </div>
         <div className={`flex gap-2 items-center`}>
-          <span className="text-sm text-gray-500">
+          <span className="text-sm text-gray-500 select-none">
             {timestamp.toLocaleTimeString()}
           </span>
-          {onReapply && (
-            <Button
-              size="small"
-              mainColor="blue"
-              onClick={() => {
-                onReapply(moves);
+          {onApply && (
+            <div
+              title="Apply All Moves"
+              onClick={async (e) => {
+                e.stopPropagation();
+                for (const move of moves) {
+                  onApply([move]);
+                  const anim = Number(localStorage.getItem("anim") || "100");
+                  if (anim !== 0) {
+                    await new Promise((resolve) => setTimeout(resolve, anim));
+                  }
+                }
               }}
             >
-              Apply All
-            </Button>
+              <DoubleRightArrow hex="#fff" />
+            </div>
           )}
-          {onReverse && (
-            <Button
-              size="small"
-              mainColor="red"
-              onClick={() => onReverse(moves)}
+          {onApply && (
+            <div
+              title="Revert All Moves"
+              onClick={async (e) => {
+                e.stopPropagation();
+                for (let i = moves.length - 1; i >= 0; i--) {
+                  onApply([{ ...moves[i], clockwise: !moves[i].clockwise }]);
+                  const anim = Number(localStorage.getItem("anim") || "100");
+                  if (anim !== 0) {
+                    await new Promise((resolve) => setTimeout(resolve, anim));
+                  }
+                }
+              }}
             >
-              Reverse All
-            </Button>
+              <Redo hex="#fff" />
+            </div>
           )}
         </div>
       </div>
@@ -104,15 +116,29 @@ const MoveTable = ({
                 {move.clockwise ? "CW" : "CCW"}
               </td>
               {onApply && (
-                <td className="p-2">
-                  <Button
+                <td className="p-2 flex">
+                  <div
+                    title="Apply Move"
                     className="w-full"
-                    mainColor="green"
-                    size="small"
-                    onClick={() => onApply(move)}
+                    onClick={() => onApply([move])}
                   >
-                    Apply
-                  </Button>
+                    <DoubleRightArrow hex="#fff" />
+                  </div>
+                  <div
+                    title="Revert Move"
+                    className="w-full"
+                    onClick={() =>
+                      onApply([
+                        {
+                          layer: move.layer,
+                          axis: move.axis,
+                          clockwise: !move.clockwise,
+                        },
+                      ])
+                    }
+                  >
+                    <Redo hex="#fff" />
+                  </div>
                 </td>
               )}
             </tr>

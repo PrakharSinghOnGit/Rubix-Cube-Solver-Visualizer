@@ -3,6 +3,7 @@ import NumberInp from "./ui/NumberInp";
 import SliderInp from "./ui/SliderInp";
 import Button from "./ui/Button";
 import InputCubeModal from "./InputCubeModal";
+import { MoveType } from "../types";
 
 export default function SettingsPanel({
   size,
@@ -17,11 +18,7 @@ export default function SettingsPanel({
   setCubeSize: (size: number) => void;
   onScramble: (count: number) => void;
   onReset: () => void;
-  onRotate: (
-    layerIndex: number,
-    axis: "X" | "Y" | "Z",
-    clockwise: boolean
-  ) => void;
+  onRotate: (move: MoveType) => void;
   isAnimating: boolean;
   isSolving?: boolean;
 }) {
@@ -61,7 +58,11 @@ export default function SettingsPanel({
           steps={1}
           onChange={(ns) => setNewSize(ns)}
         />
-        <Button onClick={() => setCubeSize(newSize)} disabled={isDisabled}>
+        <Button
+          filled={true}
+          onClick={() => setCubeSize(newSize)}
+          disabled={isDisabled}
+        >
           Set Size
         </Button>
       </FlexBox>
@@ -173,7 +174,9 @@ export default function SettingsPanel({
           CCW
         </Button>
         <Button
-          onClick={() => onRotate(layerIndex, axis, clockwise)}
+          onClick={() =>
+            onRotate({ layer: layerIndex, axis: axis, clockwise: clockwise })
+          }
           disabled={isDisabled}
         >
           Move
