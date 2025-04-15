@@ -1,5 +1,6 @@
 import { IDDFS } from "./IDDFS.ts";
 import { IDAStar } from "./IDAStar.ts";
+import { BFS } from "./BFS.ts";
 
 self.onmessage = (e: MessageEvent) => {
     const { cubeState, solver: solverType } = e.data;
@@ -10,6 +11,9 @@ self.onmessage = (e: MessageEvent) => {
     }
     else if (solverType === "IDA*") {
         solver = new IDAStar(cubeState);
+    }
+    else if (solverType === "BFS") {
+        solver = new BFS(cubeState);
     }
     else {
         self.postMessage({

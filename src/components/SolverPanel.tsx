@@ -45,6 +45,14 @@ export default function SolverPanel({
         >
           IDA*
         </Button>
+        <Button
+          disabled={isWorking}
+          selected={solver === "BFS"}
+          onClick={() => setSolver("BFS")}
+          className="w-full mb-3"
+        >
+          BFS
+        </Button>
       </div>
       <div>
         <Button
