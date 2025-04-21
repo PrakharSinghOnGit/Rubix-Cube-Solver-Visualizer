@@ -38,16 +38,19 @@ A comprehensive project for solving NxN Rubik's Cubes using various algorithmic 
    git clone https://github.com/yourusername/rubiks-cube-solver.git
    cd rubiks-cube-solver
    ```
+
 2. Install dependencies:
 
    ```
    npm install
    ```
+
 3. Start the development server:
 
    ```
    npm start
    ```
+
 4. Open your browser and navigate to `http://localhost:8080`
 
 ### Building for Production
@@ -64,30 +67,72 @@ The built files will be in the `dist` directory.
 
 ```
 rubiks-cube-solver/
-├── public/                 # Static assets
-│   ├── index.html          # HTML template
-│   └── styles.css          # Global styles
-├── src/                    # Source code
-│   ├── algorithms/         # Solving algorithms
-│   │   ├── bruteForce.js   # Brute Force algorithm
-│   │   ├── layerByLayer.js # Layer-by-Layer algorithm
-│   │   ├── kociemba.js     # Kociemba's Two-Phase algorithm
-│   │   ├── thistlethwaite.js # Thistlethwaite's algorithm
-│   │   ├── neuralNetwork.js # Neural Network approach
-│   │   └── solver.js       # Main solver module
-│   ├── benchmarking/       # Benchmarking system
-│   │   └── benchmarks.js   # Benchmarking implementation
-│   ├── core/               # Core functionality
-│   │   └── cube.js         # Rubik's Cube representation
-│   ├── utils/              # Utility functions
-│   │   └── eventHandlers.js # Event handlers for UI
-│   ├── visualization/      # Visualization modules
-│   │   └── cube.js         # 3D cube visualization
-│   └── index.js            # Application entry point
-├── package.json            # Project dependencies and scripts
-├── webpack.config.js       # Webpack configuration
-└── README.md               # Project documentation
+├── src/
+│   ├── components/
+│   │   ├── CubeView3d/            # 3D cube visualization
+│   │   ├── CubeView2d/           # 2D net view of cube
+│   │   ├── SettingsPanel/        # Cube controls and settings
+│   │   ├── SolverPanel/          # Algorithm selection
+│   │   ├── StatsPanel/           # Performance metrics display
+│   │   ├── LogsPanel/            # Move history and notation
+│   │   ├── Header/               # Application header
+│   │   └── ui/                   # Reusable UI components
+│   │       ├── Button/
+│   │       ├── PanelLabel/
+│   │       ├── ResizeHandle/
+│   │       └── MoveTable/
+│   ├── core/
+│   │   ├── cube.ts               # Cube state and logic
+│   │   ├── IDDFS.ts              # IDDFS solver implementation
+│   │   ├── IDAStar.ts            # IDA* solver implementation
+│   │   ├── CFOP.ts               # CFOP solver implementation
+│   │   └── Worker.ts             # Web Worker for background solving
+│   ├── types/                    # TypeScript type definitions
+│   ├── App.tsx                   # Main application component
+│   └── App.module.css            # Global styles
+├── public/                       # Static assets
+├── package.json                  # Project dependencies
+├── tsconfig.json                 # TypeScript configuration
+└── README.md
+
 ```
+
+## UI Overview
+
+### Main Interface
+
+![UI](./UI.png)
+
+### The interface consists of three main panels:
+
+1.**Control Panel** (Left):
+
+- Cube size selection
+- Scramble functionality
+- Manual move controls
+- Algorithm selection
+  ![Setting]()
+
+  2.**Visualization Panel** (Center):
+
+- 3D cube renderer with orbit controls
+- 2D net view of the cube
+- Resizable panels for optimal viewing
+
+  3.**Information Panel** (Right):
+
+- Algorithm statistics (move count, time taken)
+- Move history log
+- Solution steps
+
+### Solving Process
+
+When solving:
+
+1. Select an algorithm from the Solver panel
+2. Watch the step-by-step solution
+3. View performance metrics in real-time
+4. Replay or reverse any part of the solution
 
 ## Algorithms
 

@@ -3,7 +3,7 @@ export const Content: ContentDictionary = {
   IDDFS: {
     title: "Iterative Deepening Depth First Search",
     description:
-      "A search algorithm that uses a depth first search with a limited depth. The depth is increased until the goal is found.",
+      "Depth-first search with increasing depth limits for optimal memory use",
     complexity: "O(b^d)",
   },
   BFS: {
@@ -21,7 +21,7 @@ export const Content: ContentDictionary = {
   "IDA*": {
     title: "Iterative Deepening A*",
     description:
-      "A search algorithm that uses a depth first search with a limited depth. The depth is increased until the goal is found.",
+      "Heuristic-based search combining A* accuracy with DFS memory efficiency",
     complexity: "O(b^d)",
   },
 };
