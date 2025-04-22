@@ -101,7 +101,7 @@ rubiks-cube-solver/
 
 ### Main Interface
 
-![UI](./UI.png)
+![UI](./src/assets/UI.png)
 
 ### The interface consists of three main panels:
 
@@ -111,10 +111,8 @@ rubiks-cube-solver/
 - Scramble functionality
 - Manual move controls
 - Algorithm selection
-  ![Setting]()
-
-  2.**Visualization Panel** (Center):
-
+-
+- 2.**Visualization Panel** (Center):
 - 3D cube renderer with orbit controls
 - 2D net view of the cube
 - Resizable panels for optimal viewing
