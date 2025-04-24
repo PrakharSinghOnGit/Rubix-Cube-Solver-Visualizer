@@ -6,7 +6,7 @@ import {
   FACE_POSITIONS,
   FACE_ROTATIONS,
   CubeType,
-} from "../types";
+} from "../types/types";
 import { useRef, useEffect } from "react";
 
 function CameraSetup({ size }: { size: number }) {

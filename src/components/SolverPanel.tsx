@@ -1,5 +1,5 @@
 import Button from "./ui/Button";
-import { SolverType } from "../types";
+import { SolverType } from "../types/types";
 
 export default function SolverPanel({
   solver,

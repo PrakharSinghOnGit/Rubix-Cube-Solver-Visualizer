@@ -1,8 +1,8 @@
 import { useState, useEffect, useRef, useCallback } from "react";
-import styles from "./App.module.css";
+import styles from "./css/App.module.css";
 import { Cube } from "./core/cube";
 // import { CFOP } from "./core/CFOP.ts";
-import { SolverType, MoveType, SolverStatType } from "./types";
+import { SolverType, MoveType, SolverStatType } from "./types/types.ts";
 
 // Componenrts
 import { Content } from "./core/Content.ts";

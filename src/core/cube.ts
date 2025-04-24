@@ -1,5 +1,5 @@
 import chalk from "chalk";
-import { CubeType, FACE_COLORS, FaceColorType } from "../types";
+import { CubeType, FACE_COLORS, FaceColorType } from "../types/types";
 
 // Define face constants for better readability
 const FRONT = "f",
@@ -58,13 +58,20 @@ export class Cube {
   }
 
   isSolved(): boolean {
-    return this.isFaceSolved(UP) && this.isFaceSolved(DOWN) && this.isFaceSolved(LEFT) && this.isFaceSolved(RIGHT) && this.isFaceSolved(FRONT) && this.isFaceSolved(BACK);
+    return (
+      this.isFaceSolved(UP) &&
+      this.isFaceSolved(DOWN) &&
+      this.isFaceSolved(LEFT) &&
+      this.isFaceSolved(RIGHT) &&
+      this.isFaceSolved(FRONT) &&
+      this.isFaceSolved(BACK)
+    );
   }
 
   isFaceSolved(face: string): boolean {
     const grid = this.faces[face];
     const targetColor = grid[0][0]; // top-left corner as reference
-  
+
     for (let i = 0; i < this.size; i++) {
       for (let j = 0; j < this.size; j++) {
         if (grid[i][j] !== targetColor) {
@@ -74,7 +81,6 @@ export class Cube {
     }
     return true;
   }
-  
 
   reset() {
     this.initFaces();

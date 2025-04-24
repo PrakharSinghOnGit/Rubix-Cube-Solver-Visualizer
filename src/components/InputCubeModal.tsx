@@ -1,5 +1,5 @@
 import Button from "./ui/Button";
-import { CubeType } from "../types";
+import { CubeType } from "../types/types";
 
 interface InputCubeModalProps {
   onClose: () => void;

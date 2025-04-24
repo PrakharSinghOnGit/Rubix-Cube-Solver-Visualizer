@@ -1,4 +1,4 @@
-import { MoveType } from "../../types";
+import { MoveType } from "../../types/types";
 import { Collapse, DoubleRightArrow, Expand, Redo } from "./icons";
 
 interface MoveTableProps {

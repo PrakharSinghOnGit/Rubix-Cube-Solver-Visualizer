@@ -1,5 +1,5 @@
 import { useState, forwardRef, useImperativeHandle } from "react";
-import { MoveType } from "../types";
+import { MoveType } from "../types/types";
 import MoveTable from "./ui/MoveTable";
 import { CollapseAll, Cross, ExpandAll } from "./ui/icons";
 
