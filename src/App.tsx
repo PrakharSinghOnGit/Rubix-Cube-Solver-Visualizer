@@ -4,9 +4,6 @@ import { Cube } from "./core/cube";
 // import { CFOP } from "./core/CFOP.ts";
 import { SolverType, MoveType, SolverStatType } from "./types/types.ts";
 
-// wasm
-import { loadWasmModule } from "./utils/wasmLoader.ts";
-
 // Componenrts
 import { Content } from "./core/Content.ts";
 import CubeView3d from "./components/CubeView3d";
