@@ -145,6 +145,13 @@ function App() {
         });
         // The worker message handler will handle the rest
         return;
+      } else if (solverType === "BFS") {
+        workerRef.current?.postMessage({
+          solver: "BFS",
+          cubeState: cube.getState(),
+        });
+        // The worker message handler will handle the rest
+        return;
       } else if (solverType === "CFOP") {
         console.log("TO be Implemented");
       } else {

@@ -85,7 +85,7 @@ export default function SettingsPanel({
           def={Number(localStorage.getItem("anim"))}
           steps={5}
           min={0}
-          max={500}
+          max={1000}
         />
       </FlexBox>
       <Seperator />
