@@ -1,127 +1,117 @@
-import { Canvas, useThree } from "@react-three/fiber";
-import { OrbitControls, Text } from "@react-three/drei";
+import { Canvas } from "@react-three/fiber";
+import { OrbitControls, Stats } from "@react-three/drei";
 import * as THREE from "three";
-import {
-  FACE_COLORS,
-  FACE_POSITIONS,
-  FACE_ROTATIONS,
-  CubeType,
-} from "../types/types";
-import { useRef, useEffect } from "react";
-
-function CameraSetup({ size }: { size: number }) {
-  const { camera } = useThree();
-
-  useEffect(() => {
-    camera.position.set(size, size, size);
-  }, [camera, size]);
-
-  return null;
-}
+import { CubeType, FACE_COLORS, MoveType } from "../types/types";
+import { useEffect, useRef, useState } from "react";
+// import { useFrame } from "@react-three/fiber";
 
 export default function CubeView3d({
-  cubeState,
+  size,
   isSolved,
-}: {
-  cubeState: CubeType;
+  cubeState,
+}: // lastMove,
+{
+  size: number;
   isSolved: boolean;
+  lastMove: MoveType | null;
+  cubeState: CubeType;
 }) {
-  const canvasRef = useRef<HTMLDivElement>(null);
-  const GAP = 0.05;
+  const transparentMat = new THREE.MeshStandardMaterial({
+    transparent: true,
+    opacity: 0,
+  });
 
-  function getStickerPosition(
-    i: number,
-    j: number,
-    n: number,
-    face: keyof typeof FACE_POSITIONS,
-    gap: number
-  ) {
-    const offset = ((n - 1) / 2) * (1 + gap);
+  const GAP = 0.075;
+  const offset = (size - 1) / 2;
+  const lastMoveRef = useRef<MoveType | null>(null);
 
-    const { normal, xAxis, yAxis } = FACE_POSITIONS[face];
+  function getMaterial(x: number, y: number, z: number) {
     return [
-      (i - (n - 1) / 2) * (1 + gap) * xAxis[0] +
-        (j - (n - 1) / 2) * (1 + gap) * yAxis[0] +
-        normal[0] * (offset + 0.5),
-      (i - (n - 1) / 2) * (1 + gap) * xAxis[1] +
-        (j - (n - 1) / 2) * (1 + gap) * yAxis[1] +
-        normal[1] * (offset + 0.5),
-      (i - (n - 1) / 2) * (1 + gap) * xAxis[2] +
-        (j - (n - 1) / 2) * (1 + gap) * yAxis[2] +
-        normal[2] * (offset + 0.5),
+      x === size - 1
+        ? new THREE.MeshStandardMaterial({
+            color: FACE_COLORS[cubeState.r[x][y]],
+          })
+        : transparentMat,
+      x === 0
+        ? new THREE.MeshStandardMaterial({
+            color: FACE_COLORS[cubeState.l[x][y]],
+          })
+        : transparentMat,
+      y === size - 1
+        ? new THREE.MeshStandardMaterial({
+            color: FACE_COLORS[cubeState.u[x][y]],
+          })
+        : transparentMat,
+      y === 0
+        ? new THREE.MeshStandardMaterial({
+            color: FACE_COLORS[cubeState.d[x][y]],
+          })
+        : transparentMat,
+      z === size - 1
+        ? new THREE.MeshStandardMaterial({
+            color: FACE_COLORS[cubeState.f[x][y]],
+          })
+        : transparentMat,
+      z === 0
+        ? new THREE.MeshStandardMaterial({
+            color: FACE_COLORS[cubeState.b[x][y]],
+          })
+        : transparentMat,
     ];
   }
+  // Render 3D cubies
+  const renderCubies = () => {
+    const staticCubies = [];
 
-  function Sticker({
-    pos,
-    rot,
-    text,
-    col,
-  }: {
-    pos: number[];
-    rot: number[];
-    text: string;
-    col: string;
-  }) {
-    const color = FACE_COLORS[col as keyof typeof FACE_COLORS];
-    return (
-      <group
-        position={new THREE.Vector3(...pos)}
-        rotation={new THREE.Euler(...rot)}
-      >
-        <mesh>
-          <planeGeometry args={[1, 1]} />
-          <meshStandardMaterial color={color} />
-        </mesh>
+    for (let x = 0; x < size; x++) {
+      for (let y = 0; y < size; y++) {
+        for (let z = 0; z < size; z++) {
+          const isEdgeCubie =
+            x === 0 ||
+            x === size - 1 ||
+            y === 0 ||
+            y === size - 1 ||
+            z === 0 ||
+            z === size - 1;
 
-        {text && (
-          <Text
-            position={[0, 0, 0.01]}
-            fontSize={0.3}
-            color="black"
-            anchorX="center"
-            anchorY="middle"
-          >
-            {text}
-          </Text>
-        )}
+          if (!isEdgeCubie) continue;
+          const posX = (x - offset) * (1 + GAP);
+          const posY = (y - offset) * (1 + GAP);
+          const posZ = (z - offset) * (1 + GAP);
 
-        <meshStandardMaterial color="black" />
-      </group>
-    );
-  }
+          const cubie = (
+            <mesh
+              key={`${x}-${y}-${z}`}
+              position={[posX, posY, posZ]}
+              material={getMaterial(x, y, z)}
+            >
+              <boxGeometry args={[1, 1, 1]} />
+            </mesh>
+          );
 
-  function Face({
-    size,
-    face,
-    colors,
-  }: {
-    size: number;
-    face: "f" | "b" | "u" | "d" | "l" | "r";
-    colors: string[][];
-  }) {
-    const stickers = [];
-    //const offset = (size - 1) / 2; // Center the grid
+          if (
+            // animating &&
+            lastMoveRef.current &&
+            ((lastMoveRef.current.axis === "X" &&
+              lastMoveRef.current.layer === x) ||
+              (lastMoveRef.current.axis === "Y" &&
+                lastMoveRef.current.layer === y) ||
+              (lastMoveRef.current.axis === "Z" &&
+                lastMoveRef.current.layer === z))
+          ) {
+            continue;
+          }
 
-    for (let i = 0; i < size; i++) {
-      for (let j = 0; j < size; j++) {
-        stickers.push(
-          <Sticker
-            key={`${i}-${j}`}
-            text={""}
-            col={colors[i][j]}
-            pos={getStickerPosition(i, j, size, face, GAP)}
-            rot={FACE_ROTATIONS[face as keyof typeof FACE_ROTATIONS]}
-          />
-        );
+          staticCubies.push(cubie);
+        }
       }
     }
-    return <>{stickers}</>;
-  }
+
+    return staticCubies;
+  };
 
   return (
     <div
-      ref={canvasRef}
       style={{
         width: "100%",
         height: "100%",
@@ -134,22 +124,23 @@ export default function CubeView3d({
       >
         {isSolved ? "Solved" : "UnSolved"}
       </div>
-      <Canvas>
-        <CameraSetup size={cubeState.size} />
-        <Face size={cubeState.size} face={"b"} colors={cubeState.b} />
-        <Face size={cubeState.size} face={"f"} colors={cubeState.f} />
-        <Face size={cubeState.size} face={"u"} colors={cubeState.u} />
-        <Face size={cubeState.size} face={"d"} colors={cubeState.d} />
-        <Face size={cubeState.size} face={"l"} colors={cubeState.l} />
-        <Face size={cubeState.size} face={"r"} colors={cubeState.r} />
+      <Canvas camera={{ position: [size, size, size], fov: 50 }}>
+        <Stats />
+        {/* <AnimationWrapper /> */}
+        {/* Static cubies that aren't being animated */}
+        <group>{renderCubies()}</group>
+
+        {/* Layer groups for animation */}
+        {/* renderLayerGroups() */}
+
         <ambientLight intensity={2} />
         <OrbitControls
           enablePan={false}
           enableZoom={true}
           enableRotate={true}
           target={[0, 0, 0]}
-          minDistance={cubeState.size * 1}
-          maxDistance={cubeState.size * 3}
+          minDistance={size * 1}
+          maxDistance={size * 3}
           enableDamping={true}
           dampingFactor={0.05}
         />

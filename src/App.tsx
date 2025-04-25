@@ -28,6 +28,7 @@ function App() {
   const moveHistoryRef = useRef<{
     addMoveSet: (moves: MoveType[], title: string) => void;
   }>(null);
+  const [lastMove, setLastMove] = useState<MoveType | null>(null);
   const [solverStats, setSolverStats] = useState<SolverStatType>({
     totalIterations: 0,
     moveCount: 0,
@@ -66,14 +67,24 @@ function App() {
   const handleScramble = async (count: number) => {
     if (isAnimating) return;
     const moves = cube.generateScrambleMoves(count);
-    moveHistoryRef.current?.addMoveSet(moves, `Scrambled - ${count}`);
-    handleRotate(moves);
+    moveHistoryRef.current?.addMoveSet(
+      moves.map((move) => ({
+        ...move,
+        layer: typeof move.layer === "number" ? move.layer : move.layer[0],
+      })),
+      `Scrambled - ${count}`
+    );
+    handleRotate(
+      moves.map((move) => ({
+        ...move,
+        layer: typeof move.layer === "number" ? move.layer : move.layer[0],
+      }))
+    );
   };
 
   const handleRotate = useCallback(
     async (moves: MoveType | MoveType[]) => {
       if (isAnimating) return;
-      const anim = Number(localStorage.getItem("anim"));
       setIsAnimating(true);
       if (!Array.isArray(moves)) {
         moves = [moves];
@@ -81,10 +92,10 @@ function App() {
 
       for (let i = 0; i < moves.length; i++) {
         const move = moves[i];
+        const anim = Number(localStorage.getItem("anim"));
+        setLastMove(move);
         cube.rotate(move.layer, move.axis, move.clockwise);
-        const newCube = new Cube(size);
-        newCube.setState(cube.getState());
-        setCube(newCube);
+
         if (anim != 0) {
           await new Promise((resolve) => {
             animationRef.current = setTimeout(resolve, anim);
@@ -92,9 +103,11 @@ function App() {
         }
       }
 
+      // Reset lastMove when all moves are complete
+      setLastMove(null);
       setIsAnimating(false);
     },
-    [cube, isAnimating, size]
+    [cube, isAnimating]
   );
 
   const handleReset = () => {
@@ -273,7 +286,9 @@ function App() {
             >
               <PanelLabel title="3d Cube View" />
               <CubeView3d
+                size={size}
                 isSolved={cube.isSolved()}
+                lastMove={lastMove}
                 cubeState={cube.getState()}
               />
             </Panel>
