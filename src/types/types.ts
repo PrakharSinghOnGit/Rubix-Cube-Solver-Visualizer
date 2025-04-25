@@ -45,7 +45,7 @@ export interface ContentDictionary {
 
 export type SolverType = null | "IDDFS" | "BFS" | "IDA*" | "CFOP";
 export type MoveType = {
-  layer: number ;
+  layer: number | number[];
   axis: "X" | "Y" | "Z";
   clockwise: boolean;
 };
