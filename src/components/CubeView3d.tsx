@@ -1,33 +1,81 @@
-import { Canvas, useThree } from "@react-three/fiber";
-import { OrbitControls, Text } from "@react-three/drei";
+/* eslint-disable react-hooks/exhaustive-deps */
+import { Canvas } from "@react-three/fiber";
+import { OrbitControls } from "@react-three/drei";
+import { OrbitControls as OrbitControlsImpl } from "three-stdlib";
+import { ThreeDReset } from "./ui/icons";
+import gsap from "gsap";
 import * as THREE from "three";
 import {
   FACE_COLORS,
   FACE_POSITIONS,
   FACE_ROTATIONS,
   CubeType,
+  MoveType,
 } from "../types/types";
-import { useRef, useEffect } from "react";
-
-function CameraSetup({ size }: { size: number }) {
-  const { camera } = useThree();
-
-  useEffect(() => {
-    camera.position.set(size, size, size);
-  }, [camera, size]);
-
-  return null;
-}
+import { useEffect, useMemo, useRef, useState } from "react";
 
 export default function CubeView3d({
-  cubeState,
+  newCubeState,
+  oldCubeState,
   isSolved,
+  lastMove,
 }: {
-  cubeState: CubeType;
+  newCubeState: CubeType;
+  oldCubeState: CubeType;
   isSolved: boolean;
+  lastMove: MoveType | null;
 }) {
-  const canvasRef = useRef<HTMLDivElement>(null);
   const GAP = 0.05;
+  const WAIT_BETWEEN_ANIMATIONS = 0.95; // percentage
+  const orbitControlsRef = useRef<OrbitControlsImpl>(null);
+  const rotatingGroupRef = useRef<THREE.Group>(null);
+  const [stickers, setStickers] = useState<{
+    rotating: React.ReactNode[];
+    static: React.ReactNode[];
+  }>({ rotating: [], static: [] });
+  const animationRef = useRef<gsap.core.Tween | null>(null);
+  const [displayedCubeState, setDisplayedCubeState] =
+    useState<CubeType>(oldCubeState);
+  const effectiveSize = displayedCubeState.size * (1 + GAP);
+
+  const resetCameraPosition = () => {
+    if (orbitControlsRef.current) {
+      const controls = orbitControlsRef.current;
+      const animTime = !isNaN(Number(localStorage.getItem("anim")))
+        ? Number(localStorage.getItem("anim"))
+        : 300;
+      gsap.to(controls.object.position, {
+        x: effectiveSize,
+        y: effectiveSize,
+        z: effectiveSize,
+        duration: animTime / 1000,
+        ease: "power3.inOut",
+        onUpdate: () => {
+          controls.update();
+        },
+      });
+    }
+  };
+
+  const colorMaterials = useMemo(() => {
+    const materials: Record<string, THREE.MeshStandardMaterial> = {};
+    Object.entries(FACE_COLORS).forEach(([key, color]) => {
+      materials[key] = new THREE.MeshStandardMaterial({ color });
+    });
+    return materials;
+  }, []);
+
+  const faceRotations = useMemo(() => {
+    const rotations: Record<string, THREE.Euler> = {};
+    Object.entries(FACE_ROTATIONS).forEach(([face, rotation]) => {
+      rotations[face] = new THREE.Euler(...rotation);
+    });
+    return rotations;
+  }, []);
+
+  useEffect(() => {
+    setDisplayedCubeState(newCubeState);
+  }, [newCubeState]);
 
   function getStickerPosition(
     i: number,
@@ -52,76 +100,174 @@ export default function CubeView3d({
     ];
   }
 
-  function Sticker({
-    pos,
-    rot,
-    text,
-    col,
-  }: {
-    pos: number[];
-    rot: number[];
-    text: string;
-    col: string;
-  }) {
-    const color = FACE_COLORS[col as keyof typeof FACE_COLORS];
-    return (
-      <group
-        position={new THREE.Vector3(...pos)}
-        rotation={new THREE.Euler(...rot)}
-      >
-        <mesh>
-          <planeGeometry args={[1, 1]} />
-          <meshStandardMaterial color={color} />
-        </mesh>
+  useEffect(() => {
+    if (lastMove) {
+      setDisplayedCubeState(oldCubeState);
+      startRotationAnimation();
+    } else {
+      setDisplayedCubeState(newCubeState);
+      console.log("No Aimation Cube Rendered");
+    }
+  }, [lastMove]);
 
-        {text && (
-          <Text
-            position={[0, 0, 0.01]}
-            fontSize={0.3}
-            color="black"
-            anchorX="center"
-            anchorY="middle"
-          >
-            {text}
-          </Text>
-        )}
+  const startRotationAnimation = () => {
+    if (!rotatingGroupRef.current) return;
 
-        <meshStandardMaterial color="black" />
-      </group>
-    );
-  }
+    // Kill previous animation if running
+    if (animationRef.current) {
+      gsap.killTweensOf(rotatingGroupRef.current.rotation);
+      animationRef.current = null;
+    }
 
-  function Face({
-    size,
-    face,
-    colors,
-  }: {
-    size: number;
-    face: "f" | "b" | "u" | "d" | "l" | "r";
-    colors: string[][];
-  }) {
-    const stickers = [];
-    //const offset = (size - 1) / 2; // Center the grid
+    rotatingGroupRef.current.rotation.set(0, 0, 0);
 
-    for (let i = 0; i < size; i++) {
-      for (let j = 0; j < size; j++) {
-        stickers.push(
-          <Sticker
-            key={`${i}-${j}`}
-            text={""}
-            col={colors[i][j]}
-            pos={getStickerPosition(i, j, size, face, GAP)}
-            rot={FACE_ROTATIONS[face as keyof typeof FACE_ROTATIONS]}
-          />
-        );
+    const axis = lastMove?.axis.toLowerCase();
+    let targetAngle = lastMove?.clockwise ? -Math.PI / 2 : Math.PI / 2;
+    if (axis === "y") {
+      targetAngle = -targetAngle;
+    }
+
+    const animTime = !isNaN(Number(localStorage.getItem("anim")))
+      ? Number(localStorage.getItem("anim"))
+      : 300;
+    const duration = (animTime * WAIT_BETWEEN_ANIMATIONS) / 1000; // gsap expects seconds
+
+    if (rotatingGroupRef.current) {
+      const rotationTarget = { x: 0, y: 0, z: 0 };
+      if (axis === "x") rotationTarget.x = targetAngle;
+      else if (axis === "y") rotationTarget.y = targetAngle;
+      else if (axis === "z") rotationTarget.z = targetAngle;
+
+      animationRef.current = gsap.to(rotatingGroupRef.current.rotation, {
+        ...rotationTarget,
+        duration,
+        ease: "power3.inOut",
+        onComplete: () => {
+          if (rotatingGroupRef.current) {
+            // setDisplayedCubeState(oldCubeState);
+            rotatingGroupRef.current.rotation.set(0, 0, 0);
+            animationRef.current = null;
+          }
+        },
+      });
+    }
+  };
+
+  useEffect(() => {
+    const rotatingStickers: React.ReactNode[] = [];
+    const staticStickers: React.ReactNode[] = [];
+
+    const faces: Array<{
+      face: "f" | "b" | "u" | "d" | "l" | "r";
+      colors: string[][];
+    }> = [
+      { face: "f", colors: displayedCubeState.f },
+      { face: "b", colors: displayedCubeState.b },
+      { face: "u", colors: displayedCubeState.u },
+      { face: "d", colors: displayedCubeState.d },
+      { face: "l", colors: displayedCubeState.l },
+      { face: "r", colors: displayedCubeState.r },
+    ];
+
+    faces.forEach(({ face, colors }) => {
+      for (let i = 0; i < displayedCubeState.size; i++) {
+        for (let j = 0; j < displayedCubeState.size; j++) {
+          const pos = getStickerPosition(
+            i,
+            j,
+            displayedCubeState.size,
+            face,
+            GAP
+          ) as [number, number, number];
+          const colorKey = colors[i][j];
+          const material = colorMaterials[colorKey];
+          const rotation = faceRotations[face];
+          const key = `${face}-${i}-${j}`;
+          const stickerMesh = (
+            <mesh
+              key={key}
+              position={pos}
+              rotation={rotation}
+              material={material}
+            >
+              <planeGeometry args={[1, 1]} />
+            </mesh>
+          );
+
+          // Determine if this sticker should rotate
+          if (shouldMove(pos, face) && lastMove) {
+            rotatingStickers.push(stickerMesh);
+          } else {
+            staticStickers.push(stickerMesh);
+          }
+        }
+      }
+    });
+
+    setStickers({
+      rotating: rotatingStickers,
+      static: staticStickers,
+    });
+  }, [displayedCubeState]);
+
+  const shouldMove = (pos: [number, number, number], face: string) => {
+    const [x, y, z] = pos;
+    const axis = lastMove?.axis.toLowerCase();
+    const layer = lastMove?.layer;
+    const epsilon = 0.1;
+    const isOnLayer = (coord: number, target: number) =>
+      Math.abs(coord - target) < epsilon;
+
+    // Check if this is a layer move
+    let matchesLayer = false;
+    if (axis && layer !== undefined) {
+      if (axis === "x") {
+        const targetX = Number(layer) - (displayedCubeState.size - 1) / 2;
+        matchesLayer = isOnLayer(x, targetX);
+      } else if (axis === "y") {
+        const targetY = Number(layer) - (displayedCubeState.size - 1) / 2;
+        matchesLayer = isOnLayer(y, targetY);
+      } else if (axis === "z") {
+        const invertedLayer = displayedCubeState.size - 1 - Number(layer);
+        const targetZ = invertedLayer - (displayedCubeState.size - 1) / 2;
+        matchesLayer = isOnLayer(z, targetZ);
       }
     }
-    return <>{stickers}</>;
-  }
+
+    // Check if this is a face move (first or last layer)
+    let matchesFace = false;
+    if (axis && layer !== undefined) {
+      const isFirstLayer = Number(layer) === 0;
+      const isLastLayer = Number(layer) === displayedCubeState.size - 1;
+
+      if (isFirstLayer || isLastLayer) {
+        // Map axes to faces
+        const faceMap: Record<string, string[]> = {
+          x: isFirstLayer ? ["l"] : ["r"],
+          y: isFirstLayer ? ["d"] : ["u"],
+          z: isFirstLayer ? ["f"] : ["b"],
+        };
+
+        const facesToCheck = faceMap[axis] || [];
+        matchesFace = facesToCheck.includes(face);
+      }
+    }
+
+    return matchesLayer || matchesFace;
+  };
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      if (animationRef.current) {
+        animationRef.current.kill(); // Kill GSAP animation
+        animationRef.current = null;
+      }
+    };
+  }, []);
 
   return (
     <div
-      ref={canvasRef}
       style={{
         width: "100%",
         height: "100%",
@@ -134,22 +280,30 @@ export default function CubeView3d({
       >
         {isSolved ? "Solved" : "UnSolved"}
       </div>
-      <Canvas>
-        <CameraSetup size={cubeState.size} />
-        <Face size={cubeState.size} face={"b"} colors={cubeState.b} />
-        <Face size={cubeState.size} face={"f"} colors={cubeState.f} />
-        <Face size={cubeState.size} face={"u"} colors={cubeState.u} />
-        <Face size={cubeState.size} face={"d"} colors={cubeState.d} />
-        <Face size={cubeState.size} face={"l"} colors={cubeState.l} />
-        <Face size={cubeState.size} face={"r"} colors={cubeState.r} />
+      <div
+        itemType="button"
+        title="Reset Camera"
+        onClick={resetCameraPosition}
+        className="absolute bottom-2 z-10 right-2 text-white"
+      >
+        <ThreeDReset />
+      </div>
+      <Canvas
+        camera={{
+          position: [effectiveSize, effectiveSize, effectiveSize],
+        }}
+      >
         <ambientLight intensity={2} />
+        <group ref={rotatingGroupRef}>{stickers.rotating}</group>
+        {stickers.static}
         <OrbitControls
+          ref={orbitControlsRef}
           enablePan={false}
           enableZoom={true}
           enableRotate={true}
           target={[0, 0, 0]}
-          minDistance={cubeState.size * 1}
-          maxDistance={cubeState.size * 3}
+          minDistance={displayedCubeState.size * 1}
+          maxDistance={displayedCubeState.size * 3}
           enableDamping={true}
           dampingFactor={0.05}
         />

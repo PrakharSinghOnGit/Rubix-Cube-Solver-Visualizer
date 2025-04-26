@@ -2,7 +2,12 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import styles from "./css/App.module.css";
 import { Cube } from "./core/cube";
 // import { CFOP } from "./core/CFOP.ts";
-import { SolverType, MoveType, SolverStatType } from "./types/types.ts";
+import {
+  SolverType,
+  MoveType,
+  SolverStatType,
+  CubeType,
+} from "./types/types.ts";
 
 // Componenrts
 import { Content } from "./core/Content.ts";
@@ -25,6 +30,7 @@ function App() {
   const [isSolving, setIsSolving] = useState<boolean>(false);
   const workerRef = useRef<Worker | null>(null);
   const [solver, setSolver] = useState<SolverType>(null);
+  const [lastState, setLastState] = useState<CubeType>(cube.getState());
   const moveHistoryRef = useRef<{
     addMoveSet: (moves: MoveType[], title: string) => void;
   }>(null);
@@ -50,6 +56,7 @@ function App() {
     solutionPathLength: 0,
   });
   const statsIntervalRef = useRef<number | null>(null);
+  const [lastMove, setLastMove] = useState<MoveType | null>(null);
 
   useEffect(() => {
     setCube(new Cube(size));
@@ -81,10 +88,9 @@ function App() {
 
       for (let i = 0; i < moves.length; i++) {
         const move = moves[i];
+        setLastState(cube.getState());
         cube.rotate(move.layer, move.axis, move.clockwise);
-        const newCube = new Cube(size);
-        newCube.setState(cube.getState());
-        setCube(newCube);
+        setLastMove(move);
         if (anim != 0) {
           await new Promise((resolve) => {
             animationRef.current = setTimeout(resolve, anim);
@@ -94,14 +100,14 @@ function App() {
 
       setIsAnimating(false);
     },
-    [cube, isAnimating, size]
+    [cube, isAnimating]
   );
 
   const handleReset = () => {
     if (isAnimating) return;
-    // Create a new cube instance with the initial state
-    const resetCube = new Cube(size);
-    setCube(resetCube);
+    const newCube = new Cube(size);
+    setCube(newCube);
+    setLastMove(null);
   };
 
   const clearStatsInterval = () => {
@@ -274,7 +280,9 @@ function App() {
               <PanelLabel title="3d Cube View" />
               <CubeView3d
                 isSolved={cube.isSolved()}
-                cubeState={cube.getState()}
+                oldCubeState={lastState}
+                newCubeState={cube.getState()}
+                lastMove={lastMove}
               />
             </Panel>
             <PanelResizeHandle

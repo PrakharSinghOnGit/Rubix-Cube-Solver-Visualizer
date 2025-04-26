@@ -48,6 +48,7 @@
     "@react-three/fiber": "^9.1.0",
     "@tailwindcss/vite": "^4.0.14",
     "chalk": "^5.4.1",
+    "gsap": "^3.12.7",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-resizable-panels": "^2.1.7",
