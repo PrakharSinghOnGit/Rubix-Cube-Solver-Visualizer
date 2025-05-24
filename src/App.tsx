@@ -152,6 +152,13 @@ function App() {
         });
         // The worker message handler will handle the rest
         return;
+      } else if (solverType === "Kociemba") {
+        workerRef.current?.postMessage({
+          solver: "Kociemba",
+          cubeState: cube.getState(),
+        });
+        // The worker message handler will handle the rest
+        return;
       } else if (solverType === "CFOP") {
         console.log("TO be Implemented");
       } else {

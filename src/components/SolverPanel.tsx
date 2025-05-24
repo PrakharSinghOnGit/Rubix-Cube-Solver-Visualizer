@@ -34,9 +34,9 @@ export default function SolverPanel({
           selected={solver === "CFOP"}
           onClick={() => setSolver("CFOP")}
           className="w-full mb-3"
-        >
+          >
           CFOP
-        </Button> */}
+          </Button> */}
         <Button
           disabled={isWorking}
           selected={solver === "IDA*"}
@@ -45,6 +45,14 @@ export default function SolverPanel({
         >
           IDA*
         </Button>
+          <Button
+            disabled={isWorking}
+            selected={solver === "Kociemba"}
+            onClick={() => setSolver("Kociemba")}
+            className="w-full mb-3"
+          >
+            Kociemba
+          </Button>
         {/* <Button
           disabled={isWorking}
           selected={solver === "BFS"}

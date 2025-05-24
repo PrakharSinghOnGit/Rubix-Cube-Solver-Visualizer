@@ -43,7 +43,7 @@ export interface ContentDictionary {
   [key: string]: AlgorithmContent;
 }
 
-export type SolverType = null | "IDDFS" | "BFS" | "IDA*" | "CFOP";
+export type SolverType = null | "IDDFS" | "BFS" | "IDA*" | "CFOP" | "Kociemba";
 export type MoveType = {
   layer: number | number[];
   axis: "X" | "Y" | "Z";
