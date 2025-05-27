@@ -32,29 +32,11 @@ export class Cube {
     for (let i = 0; i < n; i++) {
       this.faces.u.push(new Array(n).fill("w"));
       this.faces.d.push(new Array(n).fill("y"));
-      this.faces.l.push(new Array(n).fill("g"));
-      this.faces.r.push(new Array(n).fill("b"));
-      this.faces.f.push(new Array(n).fill("r"));
-      this.faces.b.push(new Array(n).fill("o"));
+      this.faces.l.push(new Array(n).fill("o"));
+      this.faces.r.push(new Array(n).fill("r"));
+      this.faces.f.push(new Array(n).fill("g"));
+      this.faces.b.push(new Array(n).fill("b"));
     }
-  }
-
-  toFlatString(faces: { [face: string]: string[][] }): string {
-    const order = ["u", "r", "f", "d", "l", "b"];
-    return order.map((face) => faces[face].flat().join("")).join("");
-  }
-
-  fromFlatString(state: string, n = 3) {
-    const order = ["u", "r", "f", "d", "l", "b"];
-    let index = 0;
-    const faces: { [face: string]: string[][] } = {};
-
-    for (const face of order) {
-      faces[face] = Array.from({ length: n }, () =>
-        Array.from({ length: n }, () => state[index++])
-      );
-    }
-    return faces;
   }
 
   isSolved(): boolean {
@@ -241,11 +223,6 @@ export class Cube {
     const moves = this.generateScrambleMoves(count);
     moves.forEach((move) => {
       this.rotate(move.layer, move.axis, move.clockwise);
-      console.table({
-        Layer: move.layer,
-        Axis: move.axis,
-        Direction: move.clockwise ? "Clock" : "C Clock",
-      });
     });
   }
 
@@ -336,7 +313,7 @@ export class Cube {
       b: this.rotateFace(b, true),
     };
     // Print top face
-    rotatedFaces.u.forEach((row) => {
+    this.faces.u.forEach((row) => {
       console.log(
         " ".repeat(n * 4) +
           row
@@ -369,5 +346,371 @@ export class Cube {
             .join(" ")
       );
     });
+  }
+
+  /**
+   * Converts cube state to Kociemba format string (URFDLB order)
+   * @returns {string} Cube state in Kociemba format
+   */
+  toKociembaString(): string {
+    // Create a solved cube to determine the color-to-face mapping
+    const solvedCube = new Cube(this.size);
+
+    // Map each color to its corresponding face in Kociemba notation
+    const colorToFace: { [color: string]: string } = {
+      [solvedCube.faces.u[0][0]]: "U", // white -> Up
+      [solvedCube.faces.r[0][0]]: "R", // blue -> Right
+      [solvedCube.faces.f[0][0]]: "F", // red -> Front
+      [solvedCube.faces.d[0][0]]: "D", // yellow -> Down
+      [solvedCube.faces.l[0][0]]: "L", // green -> Left
+      [solvedCube.faces.b[0][0]]: "B", // orange -> Back
+    };
+
+    // Kociemba order: U, R, F, D, L, B
+    const kociembaOrder = ["u", "r", "f", "d", "l", "b"];
+
+    return kociembaOrder
+      .map((face) =>
+        this.faces[face]
+          .flat()
+          .map((color) => colorToFace[color] || color)
+          .join("")
+      )
+      .join("");
+  }
+
+  /**
+   * Sets cube state from Kociemba format string (URFDLB order)
+   * @param {string} state - Cube state in Kociemba format
+   */
+  fromKociembaString(state: string): void {
+    // Create a solved cube to determine the face-to-color mapping
+    const solvedCube = new Cube(this.size);
+
+    // Face to color mapping (inverse of toKociembaString)
+    const faceToColor: { [face: string]: string } = {
+      U: solvedCube.faces.u[0][0], // Up -> white
+      R: solvedCube.faces.r[0][0], // Right -> blue
+      F: solvedCube.faces.f[0][0], // Front -> red
+      D: solvedCube.faces.d[0][0], // Down -> yellow
+      L: solvedCube.faces.l[0][0], // Left -> green
+      B: solvedCube.faces.b[0][0], // Back -> orange
+    };
+
+    const kociembaOrder = ["u", "r", "f", "d", "l", "b"];
+    let index = 0;
+
+    for (const face of kociembaOrder) {
+      this.faces[face] = Array.from({ length: this.size }, () =>
+        Array.from({ length: this.size }, () => {
+          const faceChar = state[index++];
+          return faceToColor[faceChar] || faceChar;
+        })
+      );
+    }
+  }
+
+  /**
+   * Converts Kociemba move notation to rotate function parameters
+   * @param {string} move - Move in Kociemba notation (e.g., "R", "U'", "F2", "Rw", "x", "y'")
+   * @returns {Object} Parameters for rotate function
+   */
+  parseKociembaMove(move: string): {
+    layer: number | number[];
+    axis: "X" | "Y" | "Z";
+    clockwise: boolean;
+  } {
+    // Remove whitespace
+    move = move.trim();
+
+    // Check for rotations (whole cube moves)
+    if (move.match(/^[xyz]['2]?$/)) {
+      return this.parseRotationMove(move);
+    }
+
+    // Check for wide moves (lowercase or 'w' suffix)
+    const isWide = move.includes("w") || /^[a-z]/.test(move);
+
+    // Extract the base face and modifiers
+    const baseFace = move.charAt(0).toUpperCase();
+    const modifiers = move.slice(1);
+
+    // Determine direction
+    let clockwise = true;
+    if (modifiers.includes("'")) {
+      clockwise = false;
+    } else if (modifiers.includes("2")) {
+      // For double moves, we'll return the first rotation
+      // The caller should execute this twice
+      clockwise = true;
+    }
+
+    // Determine layer(s)
+    let layer: number | number[];
+    if (isWide) {
+      // Wide moves affect outer two layers
+      layer = [0, 1];
+    } else {
+      // Regular moves affect only outer layer
+      layer = 0;
+    }
+
+    // Check for middle layer moves (M, E, S)
+    if (["M", "E", "S"].includes(baseFace)) {
+      return this.parseMiddleLayerMove(baseFace, clockwise);
+    }
+
+    // Map face to axis and adjust for cube orientation
+    const faceToAxisMap: {
+      [key: string]: { axis: "X" | "Y" | "Z"; needsInvert: boolean };
+    } = {
+      U: { axis: "Y", needsInvert: false }, // Up face - Y axis
+      D: { axis: "Y", needsInvert: true }, // Down face - Y axis (inverted)
+      R: { axis: "Z", needsInvert: false }, // Right face - Z axis
+      L: { axis: "Z", needsInvert: true }, // Left face - Z axis (inverted)
+      F: { axis: "X", needsInvert: false }, // Front face - X axis
+      B: { axis: "X", needsInvert: true }, // Back face - X axis (inverted)
+    };
+
+    const mapping = faceToAxisMap[baseFace];
+    if (!mapping) {
+      throw new Error(`Unknown face: ${baseFace}`);
+    }
+
+    // Adjust layer for back/down faces
+    if (mapping.needsInvert && typeof layer === "number") {
+      layer = this.size - 1 - layer;
+    } else if (mapping.needsInvert && Array.isArray(layer)) {
+      layer = layer.map((l) => this.size - 1 - l);
+    }
+
+    // Invert clockwise for back/down faces to match standard notation
+    if (mapping.needsInvert) {
+      clockwise = !clockwise;
+    }
+
+    return {
+      layer,
+      axis: mapping.axis,
+      clockwise,
+    };
+  }
+
+  /**
+   * Parses rotation moves (x, y, z)
+   * @param {string} move - Rotation move (x, y, z with optional ' or 2)
+   * @returns {Object} Parameters for rotate function
+   */
+  private parseRotationMove(move: string): {
+    layer: number | number[];
+    axis: "X" | "Y" | "Z";
+    clockwise: boolean;
+  } {
+    const baseFace = move.charAt(0).toLowerCase();
+    const modifiers = move.slice(1);
+
+    let clockwise = true;
+    if (modifiers.includes("'")) {
+      clockwise = false;
+    }
+
+    // Rotation moves affect all layers
+    const allLayers = Array.from({ length: this.size }, (_, i) => i);
+
+    const rotationMap: { [key: string]: "X" | "Y" | "Z" } = {
+      x: "X", // Rotate like R
+      y: "Y", // Rotate like U
+      z: "Z", // Rotate like F
+    };
+
+    return {
+      layer: allLayers,
+      axis: rotationMap[baseFace],
+      clockwise,
+    };
+  }
+
+  /**
+   * Parses middle layer moves (M, E, S)
+   * @param {string} face - Middle layer face (M, E, S)
+   * @param {boolean} clockwise - Direction
+   * @returns {Object} Parameters for rotate function
+   */
+  private parseMiddleLayerMove(
+    face: string,
+    clockwise: boolean
+  ): { layer: number | number[]; axis: "X" | "Y" | "Z"; clockwise: boolean } {
+    const middleLayer = Math.floor(this.size / 2);
+
+    switch (face) {
+      case "M": // Middle layer parallel to L and R faces
+        return {
+          layer: middleLayer,
+          axis: "Z",
+          clockwise: !clockwise, // M moves follow L face direction
+        };
+      case "E": // Equatorial layer parallel to U and D faces
+        return {
+          layer: middleLayer,
+          axis: "Y",
+          clockwise: !clockwise, // E moves follow D face direction
+        };
+      case "S": // Standing layer parallel to F and B faces
+        return {
+          layer: middleLayer,
+          axis: "X",
+          clockwise: clockwise, // S moves follow F face direction
+        };
+      default:
+        throw new Error(`Unknown middle layer: ${face}`);
+    }
+  }
+
+  /**
+   * Executes a sequence of Kociemba moves
+   * @param {string} moveSequence - Space-separated sequence of moves
+   */
+  executeKociembaMoves(moveSequence: string): void {
+    const moves = moveSequence.trim().split(/\s+/);
+
+    for (const move of moves) {
+      if (!move) continue;
+
+      const params = this.parseKociembaMove(move);
+
+      // Handle double moves (execute twice)
+      const repetitions = move.includes("2") ? 2 : 1;
+
+      for (let i = 0; i < repetitions; i++) {
+        this.rotate(params.layer, params.axis, params.clockwise);
+      }
+    }
+  }
+
+  /**
+   * Converts your internal move format to Kociemba notation
+   * @param {number | number[]} layer - Layer(s) being rotated
+   * @param {"X" | "Y" | "Z"} axis - Rotation axis
+   * @param {boolean} clockwise - Direction
+   * @returns {string} Move in Kociemba notation
+   */
+  toKociembaMove(
+    layer: number | number[],
+    axis: "X" | "Y" | "Z",
+    clockwise: boolean
+  ): string {
+    // Handle multiple layers (wide moves)
+    const isWide = Array.isArray(layer) && layer.length > 1;
+
+    // Get the primary layer (outermost)
+    const primaryLayer = Array.isArray(layer) ? Math.min(...layer) : layer;
+
+    // Map axis and layer to face
+    let face = "";
+    let needsInvert = false;
+
+    switch (axis) {
+      case "X":
+        if (primaryLayer === 0) {
+          face = "F";
+        } else if (primaryLayer === this.size - 1) {
+          face = "B";
+          needsInvert = true;
+        } else {
+          face = "S"; // Middle layer
+        }
+        break;
+      case "Y":
+        if (primaryLayer === 0) {
+          face = "D";
+          needsInvert = true;
+        } else if (primaryLayer === this.size - 1) {
+          face = "U";
+        } else {
+          face = "E"; // Middle layer
+          needsInvert = true;
+        }
+        break;
+      case "Z":
+        if (primaryLayer === 0) {
+          face = "L";
+          needsInvert = true;
+        } else if (primaryLayer === this.size - 1) {
+          face = "R";
+        } else {
+          face = "M"; // Middle layer
+          needsInvert = true;
+        }
+        break;
+    }
+
+    // Adjust clockwise for inverted faces
+    if (needsInvert) {
+      clockwise = !clockwise;
+    }
+
+    // Add wide move notation
+    if (isWide && !["M", "E", "S"].includes(face)) {
+      face = face.toLowerCase() + "w";
+    }
+
+    // Add direction modifier
+    let notation = face;
+    if (!clockwise) {
+      notation += "'";
+    }
+    return notation;
+  }
+  /**
+   * Debug function to verify the color mapping
+   */
+  debugColorMapping(): void {
+    const solvedCube = new Cube(this.size);
+    console.log("Color mapping:");
+    console.log(`U (Up): ${solvedCube.faces.u[0][0]}`);
+    console.log(`R (Right): ${solvedCube.faces.r[0][0]}`);
+    console.log(`F (Front): ${solvedCube.faces.f[0][0]}`);
+    console.log(`D (Down): ${solvedCube.faces.d[0][0]}`);
+    console.log(`L (Left): ${solvedCube.faces.l[0][0]}`);
+    console.log(`B (Back): ${solvedCube.faces.b[0][0]}`);
+
+    console.log(
+      "\nSolved cube Kociemba string:",
+      solvedCube.toKociembaString()
+    );
+  }
+
+  /**
+   * Validates if the cube state is valid for solving
+   * @returns {boolean} True if valid, false otherwise
+   */
+  isValidCubeState(): boolean {
+    const colorCounts: { [color: string]: number } = {};
+    const expectedCount = this.size * this.size;
+
+    // Count each color
+    Object.values(this.faces).forEach((face) => {
+      face.flat().forEach((color) => {
+        colorCounts[color] = (colorCounts[color] || 0) + 1;
+      });
+    });
+
+    // Check if we have exactly 6 colors with equal counts
+    const colors = Object.keys(colorCounts);
+    if (colors.length !== 6) {
+      console.error(`Expected 6 colors, found ${colors.length}:`, colors);
+      return false;
+    }
+
+    const invalidColors = colors.filter(
+      (color) => colorCounts[color] !== expectedCount
+    );
+    if (invalidColors.length > 0) {
+      console.error(`Invalid color counts:`, colorCounts);
+      console.error(`Expected ${expectedCount} of each color`);
+      return false;
+    }
+
+    return true;
   }
 }

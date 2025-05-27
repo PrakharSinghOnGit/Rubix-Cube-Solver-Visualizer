@@ -1,3 +1,5 @@
+import { createContext } from "react";
+
 export type CubeType = {
   size: number;
   u: string[][];
@@ -91,3 +93,15 @@ export type CFOPState = {
   progress: number;
   moves: MoveType[];
 };
+
+export type MoveSet = { moves: string[]; title: string };
+
+export type MoveHistoryContextType = {
+  addMoveSet: (moves: string[], title: string) => void;
+  moveSets: MoveSet[];
+  onAddMoveSet: (cb: (newMove: MoveSet) => void) => void;
+};
+
+export const MoveHistoryContext = createContext<MoveHistoryContextType | null>(
+  null
+);

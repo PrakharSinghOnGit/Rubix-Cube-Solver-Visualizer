@@ -119,6 +119,8 @@ export default function CubeView3d({
     return <>{stickers}</>;
   }
 
+  if (!cubeState) return null; // Handle the case where cubeState is undefine
+
   return (
     <div
       ref={canvasRef}

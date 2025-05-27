@@ -15,7 +15,7 @@ interface HistoryEntry {
 }
 
 export interface LogsPanelRef {
-  addMoveSet: (moves: MoveType[], title: string) => void;
+  addMoveSet: (moves: string[], title: string) => void;
 }
 
 const LogsPanel = forwardRef<LogsPanelRef, LogsPanelProps>(
@@ -25,7 +25,7 @@ const LogsPanel = forwardRef<LogsPanelRef, LogsPanelProps>(
       new Set()
     );
 
-    const addMoveSet = (moves: MoveType[], title: string) => {
+    const addMoveSet = (moves: string[], title: string) => {
       const newEntry: HistoryEntry = {
         id: Date.now().toString(),
         title,

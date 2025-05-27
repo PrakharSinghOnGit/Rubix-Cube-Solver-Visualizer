@@ -15,7 +15,32 @@ type StatGroup = {
   stats: Stat[];
 };
 
-const StatsPanel: React.FC<StatsPanelProps> = ({ solverStats, content }) => {
+const StatsPanel: React.FC<StatsPanelProps> = () => {
+  const content = {
+    title: "Solver Information",
+    description: "No solver selected",
+  };
+  const solverStats = {
+    timeTaken: "0ms",
+    totalIterations: 0,
+    moveCount: 0,
+    comparisonCount: 0,
+    maxDepthReached: 0,
+    goalReached: false,
+    nodesExplored: 0,
+    searchTreeDepth: 0,
+    uniqueStates: 0,
+    backtracks: 0,
+    heuristicCost: 0,
+    statesPruned: 0,
+    peakMemoryUsed: 0,
+    openSetSize: 0,
+    closedSetSize: 0,
+    totalStatesInMemory: 0,
+    solvedFaces: 0,
+    heuristicEstimate: 0,
+    solutionPathLength: 0,
+  };
   const statGroups: StatGroup[] = [
     {
       title: "🧮 Algorithm Stats",

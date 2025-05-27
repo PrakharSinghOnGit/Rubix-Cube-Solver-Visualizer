@@ -4611,51 +4611,17 @@ class RubiksCube(object):
 
         self.compress_solution()
 
-    def print_solution(self, include_comments: bool) -> None:
+    def get_solution(self) -> None:
         """
-        Print an alg.cubing.net URL for this cube and its solution. Also write the solution
-        to a solution.txt file in the HTML_DIRECTORY.
-
-        Args:
-            include_comments: include comments in the alg.cubing.net URL
+        Returns:
+            The solution as a list of steps
         """
 
-        # Print an alg.cubing.net URL for this setup/solution
-        url = "https://alg.cubing.net/?puzzle=%dx%dx%d&alg=" % (self.size, self.size, self.size)
-
-        for x in self.solution_with_markers:
-            # do not add the comment line if there were 0 steps for this section
-            if x.startswith("COMMENT_0_steps"):
-                continue
-
-            elif x.startswith("COMMENT"):
-                if include_comments:
-                    if x == "COMMENT_":
-                        url += "%0A"
-                    else:
-                        url += r"""%2F%2F""" + x.replace("COMMENT", "") + "%0A%0A"
-            else:
-                url += x + "_"
-
-        url += "&type=alg"
-        url += "&title=dwalton76"
-        url = url.replace("'", "-")
-        url = url.replace(" ", "_")
-        logger.info(f"\nURL     : {url}")
-
-        # print the solution
         solution_minus_comments = []
         for step in self.solution:
             if not step.startswith("COMMENT"):
                 solution_minus_comments.append(step)
-
-        print(f"Solution: {' '.join(solution_minus_comments)}")
-        logger.info("%d steps total" % self.get_solution_len_minus_rotates(self.solution))
-
-        solution_txt_filename = os.path.join(HTML_DIRECTORY, "solution.txt")
-        with open(solution_txt_filename, "w") as fh:
-            fh.write(" ".join(self.solution) + "\n")
-        os.chmod(solution_txt_filename, 0o777)
+        return solution_minus_comments
 
     def nuke_corners(self) -> None:
         """

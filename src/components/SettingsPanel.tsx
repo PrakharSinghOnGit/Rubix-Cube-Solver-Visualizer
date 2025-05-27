@@ -3,33 +3,29 @@ import NumberInp from "./ui/NumberInp";
 import SliderInp from "./ui/SliderInp";
 import Button from "./ui/Button";
 import InputCubeModal from "./InputCubeModal";
-import { MoveType } from "../types/types";
 
 export default function SettingsPanel({
   size,
   setCubeSize,
   onScramble,
-  onRotate,
+  onUserMoves,
   onReset,
   isAnimating,
   isSolving = false,
 }: {
+  onScramble: (count: number) => void;
+  onUserMoves: (moves: string[]) => void;
   size: number;
   setCubeSize: (size: number) => void;
-  onScramble: (count: number) => void;
   onReset: () => void;
-  onRotate: (move: MoveType) => void;
   isAnimating: boolean;
   isSolving?: boolean;
 }) {
-  const [layerIndex, setLayerIndex] = useState(0);
-  const [axis, setAxis] = useState<"X" | "Y" | "Z">("X");
-  const [clockwise, setClockwise] = useState<boolean>(false);
   const [showInputModal, setShowInputModal] = useState<boolean>(false);
   const [newSize, setNewSize] = useState<number>(size);
-
   const isDisabled = isAnimating || isSolving;
-
+  const [moves, setMoves] = useState<string>("");
+  const [scam, setScam] = useState<number>(20);
   function Seperator() {
     return (
       <div
@@ -48,6 +44,7 @@ export default function SettingsPanel({
   function BoxTitle({ title }: { title: string }) {
     return <div className="text-sm mt-3">{title}</div>;
   }
+
   return (
     <div className="mt-5 p-3">
       <FlexBox>
@@ -97,16 +94,11 @@ export default function SettingsPanel({
           }}
           className="focus:outline-none rounded-[15px] w-20 h-10 p-2.5"
           placeholder="Count"
-          defaultValue={Number(localStorage.getItem("scam"))}
-          onChange={(e) =>
-            localStorage.setItem("scam", e.target.value.toString())
-          }
+          defaultValue={scam}
+          onChange={(e) => setScam(Number(e.target.value))}
           disabled={isDisabled}
         />
-        <Button
-          onClick={() => onScramble(Number(localStorage.getItem("scam")))}
-          disabled={isDisabled}
-        >
+        <Button onClick={() => onScramble(scam)} disabled={isDisabled}>
           Scramble
         </Button>
       </FlexBox>
@@ -114,72 +106,22 @@ export default function SettingsPanel({
       <BoxTitle title="Move" />
       <FlexBox>
         <input
-          placeholder="Layer"
+          placeholder="Moves"
           style={{
             border: "1px solid var(--borderCol)",
           }}
-          defaultValue={layerIndex.toString()}
-          className="focus:outline-none rounded-[15px] w-20 h-10 p-2.5"
-          onFocus={(e) => (e.target.value = "")}
-          onBlur={(e) => {
-            const value = parseInt(e.target.value);
-            if (value > size - 1) {
-              setLayerIndex(size - 1);
-            } else if (isNaN(value)) {
-              setLayerIndex(0);
-            } else {
-              setLayerIndex(value);
-            }
+          className="focus:outline-none rounded-[15px] w-full h-10 p-2.5"
+          onChange={(e) => {
+            setMoves(e.target.value);
           }}
-          disabled={isDisabled}
         />
-        <Button
-          joinRight={true}
-          onClick={() => setAxis("X")}
-          selected={axis === "X"}
-        >
-          X
-        </Button>
-        <Button
-          joinLeft={true}
-          joinRight={true}
-          onClick={() => setAxis("Y")}
-          selected={axis === "Y"}
-        >
-          Y
-        </Button>
-        <Button
-          joinLeft={true}
-          onClick={() => setAxis("Z")}
-          selected={axis === "Z"}
-        >
-          Z
-        </Button>
       </FlexBox>
       <FlexBox>
         <Button
-          joinRight={true}
-          onClick={() => setClockwise(true)}
           disabled={isDisabled}
-          selected={clockwise}
+          onClick={() => onUserMoves(moves.split(" "))}
         >
-          CW
-        </Button>
-        <Button
-          joinLeft={true}
-          onClick={() => setClockwise(false)}
-          disabled={isDisabled}
-          selected={!clockwise}
-        >
-          CCW
-        </Button>
-        <Button
-          onClick={() =>
-            onRotate({ layer: layerIndex, axis: axis, clockwise: clockwise })
-          }
-          disabled={isDisabled}
-        >
-          Move
+          Apply
         </Button>
       </FlexBox>
       {showInputModal && (
