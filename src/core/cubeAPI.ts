@@ -319,7 +319,7 @@ export class Cube {
 
   generateRandomMoves(length: number = 20): string[] {
     const moves: CubeMove[] = [];
-    const validMoves = Moves[this.size];
+    const validMoves = Moves[this.size - 1];
     for (let i = 0; i < length; i++) {
       const randomMove =
         validMoves[Math.floor(Math.random() * validMoves.length)];

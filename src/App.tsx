@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import styles from "./css/App.module.css";
 import { useCube } from "./hooks/useCube";
 
@@ -7,6 +7,7 @@ import CubeView3d from "./components/CubeView3d";
 import CubeView2d from "./components/CubeView2d";
 import SettingsPanel from "./components/SettingsPanel";
 import SolverPanel from "./components/SolverPanel";
+import LogsPanel, { LogsPanelRef } from "./components/LogsPanel";
 import PanelLabel from "./components/ui/PanelLabel";
 import Header from "./components/Header";
 import ResizeHandle from "./components/ui/ResizeHandle";
@@ -20,7 +21,8 @@ function App() {
   const [isAnimating, setIsAnimating] = useState(false);
   const [isSolving, setIsSolving] = useState<boolean>(false);
   const [cubeState, setCubeState] = useState<CubeType | null>(null);
-  const [forceUpdate, setForceUpdate] = useState(0); // Force re-render trigger
+  const [forceUpdate, setForceUpdate] = useState(0);
+  const logsPanelRef = useRef<LogsPanelRef>(null);
 
   useEffect(() => {
     if (isReady && cube) {
@@ -28,10 +30,15 @@ function App() {
     }
   }, [isReady, cube, forceUpdate]);
 
-  function applyMoves(moves: string[]) {
+  function applyMoves(moves: string[], title?: string) {
     const delay = Number(localStorage.getItem("anim")) || 300;
     const currentCube = cube;
     if (!currentCube) return;
+
+    // Log the moves if a title is provided
+    if (title && logsPanelRef.current) {
+      logsPanelRef.current.addMoveSet(moves, title);
+    }
 
     setIsAnimating(true);
 
@@ -73,23 +80,33 @@ function App() {
   const handleScramble = (count: number) => {
     if (!cube) return;
     const moves = cube?.generateRandomMoves(count);
-    applyMoves(moves);
+    applyMoves(moves, "Scramble");
   };
 
   const handleUserMoves = (moves: string[]) => {
     if (!cube) return;
-    applyMoves(moves);
+    applyMoves(moves, "User Input");
   };
 
   const handleSolution = async (solver: SolverType) => {
     if (!cube) return;
     setIsSolving(true);
 
-    const solverCube = await Cube.create(3, cube.state);
-    const sol = await solverCube.solve(solver);
-    console.log(sol);
-    applyMoves(sol.solution);
-    setIsSolving(false);
+    try {
+      const solverCube = await Cube.create(size, cube.state);
+      const sol = await solverCube.solve(solver);
+      console.log(sol);
+      applyMoves(sol.solution, `${solver} Solution`);
+    } catch (error) {
+      console.error("Error solving cube:", error);
+    } finally {
+      setIsSolving(false);
+    }
+  };
+
+  // Handle moves applied from the logs panel
+  const handleLogMoves = (moves: string[]) => {
+    applyMoves(moves); // Don't log these moves again
   };
 
   if (!isReady || !cubeState) {
@@ -202,7 +219,7 @@ function App() {
               minSize={25}
             >
               <PanelLabel title="Move Logs" left={true} />
-              {/* <LogsPanel moveHistory={moveHistory} /> */}
+              <LogsPanel ref={logsPanelRef} onApplyMove={handleLogMoves} />
             </Panel>
           </PanelGroup>
         </Panel>
