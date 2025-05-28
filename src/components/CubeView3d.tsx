@@ -1,6 +1,9 @@
 import { Canvas, useThree } from "@react-three/fiber";
 import { OrbitControls, Text } from "@react-three/drei";
+import { OrbitControls as OrbitControlsImpl } from "three-stdlib";
+import gsap from "gsap";
 import * as THREE from "three";
+import { ThreeDReset } from "./ui/icons";
 import {
   FACE_COLORS,
   FACE_POSITIONS,
@@ -27,7 +30,28 @@ export default function CubeView3d({
   isSolved: boolean;
 }) {
   const canvasRef = useRef<HTMLDivElement>(null);
+  const orbitControlsRef = useRef<OrbitControlsImpl>(null);
   const GAP = 0.05;
+  const effectiveSize = cubeState.size * (1 + GAP);
+
+  const resetCameraPosition = () => {
+    if (orbitControlsRef.current) {
+      const controls = orbitControlsRef.current;
+      const animTime = !isNaN(Number(localStorage.getItem("anim")))
+        ? Number(localStorage.getItem("anim"))
+        : 300;
+      gsap.to(controls.object.position, {
+        x: effectiveSize,
+        y: effectiveSize,
+        z: effectiveSize,
+        duration: animTime / 1000,
+        ease: "power3.inOut",
+        onUpdate: () => {
+          controls.update();
+        },
+      });
+    }
+  };
 
   function getStickerPosition(
     i: number,
@@ -135,6 +159,14 @@ export default function CubeView3d({
         }`}
       >
         {isSolved ? "Solved" : "UnSolved"}
+      </div>
+      <div
+        itemType="button"
+        title="Reset Camera"
+        onClick={resetCameraPosition}
+        className="absolute bottom-2 z-10 right-2 text-white"
+      >
+        <ThreeDReset />
       </div>
       <Canvas>
         <CameraSetup size={cubeState.size} />
