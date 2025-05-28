@@ -1,9 +1,9 @@
 import { Canvas, useThree } from "@react-three/fiber";
 import { OrbitControls, Text } from "@react-three/drei";
 import { OrbitControls as OrbitControlsImpl } from "three-stdlib";
-import gsap from "gsap";
 import * as THREE from "three";
 import { ThreeDReset } from "./ui/icons";
+import { gsap } from "gsap";
 import {
   FACE_COLORS,
   FACE_POSITIONS,
@@ -178,6 +178,7 @@ export default function CubeView3d({
         <Face size={cubeState.size} face={"r"} colors={cubeState.r} />
         <ambientLight intensity={2} />
         <OrbitControls
+          ref={orbitControlsRef}
           enablePan={false}
           enableZoom={true}
           enableRotate={true}
