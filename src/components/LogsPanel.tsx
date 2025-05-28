@@ -1,21 +1,20 @@
 import { useState, forwardRef, useImperativeHandle } from "react";
-import { MoveType } from "../types/types";
-import MoveTable from "./ui/MoveTable";
 import { CollapseAll, Cross, ExpandAll } from "./ui/icons";
+import StringMoveTable from "./ui/StringMoveTable";
 
 interface LogsPanelProps {
-  onApplyMove?: (move: MoveType[]) => void;
+  onApplyMove?: (moves: string[]) => void;
 }
 
 interface HistoryEntry {
   id: string;
   title: string;
-  moves: MoveType[];
+  moves: string[];
   timestamp: Date;
 }
 
 export interface LogsPanelRef {
-  addMoveSet: (moves: MoveType[], title: string) => void;
+  addMoveSet: (moves: string[], title: string) => void;
 }
 
 const LogsPanel = forwardRef<LogsPanelRef, LogsPanelProps>(
@@ -25,7 +24,7 @@ const LogsPanel = forwardRef<LogsPanelRef, LogsPanelProps>(
       new Set()
     );
 
-    const addMoveSet = (moves: MoveType[], title: string) => {
+    const addMoveSet = (moves: string[], title: string) => {
       const newEntry: HistoryEntry = {
         id: Date.now().toString(),
         title,
@@ -89,7 +88,7 @@ const LogsPanel = forwardRef<LogsPanelRef, LogsPanelProps>(
 
         <div className="p-2">
           {history.map((entry) => (
-            <MoveTable
+            <StringMoveTable
               key={entry.id}
               id={entry.id}
               title={entry.title}

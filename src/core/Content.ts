@@ -24,4 +24,10 @@ export const Content: ContentDictionary = {
       "Heuristic-based search combining A* accuracy with DFS memory efficiency",
     complexity: "O(b^d)",
   },
+  kociemba: {
+    title: "Kociemba's Algorithm",
+    description:
+      "The Kociemba algorithm is a two-phase algorithm that efficiently solves a Rubik’s Cube by reducing it to a simpler state in Phase 1, then solving it completely in Phase 2. It finds near-optimal solutions quickly, often within 20 moves.",
+    complexity: "Doesn't have a strict theoretical complexity",
+  },
 };

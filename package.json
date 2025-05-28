@@ -7,7 +7,9 @@
     "dev": "vite --host",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "start:backend": "python backend/cube.py",
+    "start": "concurrently \"npm run dev\" \"npm run start:backend\""
   },
   "eslintConfig": {
     "extends": [
@@ -34,6 +36,7 @@
     "@types/react-dom": "^19.0.4",
     "@types/three": "^0.174.0",
     "@vitejs/plugin-react": "^4.3.4",
+    "concurrently": "^9.1.2",
     "eslint": "^8.57.1",
     "eslint-plugin-react-hooks": "^5.2.0",
     "eslint-plugin-react-refresh": "^0.4.19",
@@ -48,9 +51,13 @@
     "@react-three/fiber": "^9.1.0",
     "@tailwindcss/vite": "^4.0.14",
     "chalk": "^5.4.1",
+    "cors": "^2.8.5",
+    "express": "^5.1.0",
+    "gsap": "^3.13.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-resizable-panels": "^2.1.7",
+    "socket.io-client": "^4.8.1",
     "tailwindcss": "^4.0.14",
     "three": "^0.174.0"
   }

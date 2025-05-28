@@ -1,19 +1,17 @@
+import { useState } from "react";
 import Button from "./ui/Button";
 import { SolverType } from "../types/types";
 
 export default function SolverPanel({
-  solver,
   isWorking,
-  setSolver,
   isSolved,
-  onSolve,
+  onSolution,
 }: {
-  solver: SolverType;
+  onSolution: (solver: SolverType) => void;
   isWorking: boolean;
-  setSolver: (solver: SolverType) => void;
   isSolved: boolean;
-  onSolve: (solver: SolverType) => void;
 }) {
+  const [solver, setSolver] = useState<SolverType | null>(null);
   return (
     <div className="p-3 flex flex-col h-full">
       <div className="grow overflow-scroll">
@@ -29,14 +27,6 @@ export default function SolverPanel({
         >
           IDDFS
         </Button>
-        {/* <Button
-          disabled={isWorking}
-          selected={solver === "CFOP"}
-          onClick={() => setSolver("CFOP")}
-          className="w-full mb-3"
-        >
-          CFOP
-        </Button> */}
         <Button
           disabled={isWorking}
           selected={solver === "IDA*"}
@@ -45,18 +35,26 @@ export default function SolverPanel({
         >
           IDA*
         </Button>
-        {/* <Button
+        <Button
+          disabled={isWorking}
+          selected={solver === "Kociemba"}
+          onClick={() => setSolver("Kociemba")}
+          className="w-full mb-3"
+        >
+          Kociemba
+        </Button>
+        <Button
           disabled={isWorking}
           selected={solver === "BFS"}
           onClick={() => setSolver("BFS")}
           className="w-full mb-3"
         >
           BFS
-        </Button> */}
+        </Button>
       </div>
       <div>
         <Button
-          onClick={() => onSolve(solver)}
+          onClick={() => onSolution(solver)}
           disabled={isWorking || isSolved || solver === null}
           color="green"
           className="w-full"

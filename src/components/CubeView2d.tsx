@@ -5,6 +5,9 @@ import { useThree } from "@react-three/fiber";
 import { useEffect } from "react";
 
 export default function CubeView2d({ cubeState }: { cubeState: CubeType }) {
+  if (!cubeState) {
+    return null;
+  }
   return (
     <Canvas
       style={{ width: "100%", height: "100%" }}

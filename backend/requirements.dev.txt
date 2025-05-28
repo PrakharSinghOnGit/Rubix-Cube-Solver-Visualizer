@@ -1,0 +1,8 @@
+# building wheels, etc
+setuptools==49.2.0
+wheel==0.34.2
+
+# make format/lint
+black==23.7.0
+flake8==6.1.0
+isort==5.12.0
