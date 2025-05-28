@@ -8,6 +8,7 @@ import CubeView2d from "./components/CubeView2d";
 import SettingsPanel from "./components/SettingsPanel";
 import SolverPanel from "./components/SolverPanel";
 import LogsPanel, { LogsPanelRef } from "./components/LogsPanel";
+import StatsPanel from "./components/StatsPanel";
 import PanelLabel from "./components/ui/PanelLabel";
 import Header from "./components/Header";
 import ResizeHandle from "./components/ui/ResizeHandle";
@@ -207,7 +208,7 @@ function App() {
               minSize={25}
               defaultSize={65}
             >
-              {/* <StatsPanel content={solver ? Content[solver] : undefined} /> */}
+              <StatsPanel />
             </Panel>
             <PanelResizeHandle
               children={<ResizeHandle vertical={true} />}

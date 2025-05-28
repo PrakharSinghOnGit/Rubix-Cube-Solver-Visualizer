@@ -1,11 +1,14 @@
-from pickle import TRUE
 from flask import Flask, request, jsonify
 from flask_cors import CORS
+from flask_socketio import SocketIO, emit
 import uuid
-from typing import Dict, Any, Optional
+from typing import Dict, Any, Optional, List
 import logging
 import sys
 from math import sqrt
+import threading
+import queue
+from datetime import datetime
 
 # Import the real rubiks cube libraries
 from rubikscubennnsolver import SolveError, configure_logging, reverse_steps
@@ -25,14 +28,127 @@ if sys.version_info < (3, 6):
 configure_logging()
 logger = logging.getLogger(__name__)
 
+# Filter out WebSocket polling logs
+class WebSocketFilter(logging.Filter):
+    def filter(self, record):
+        # Filter out network/connection related logs
+        if record.name in ['werkzeug', 'engineio', 'socketio']:
+            return False
+            
+        # Filter out logs that don't contain useful cube solving information
+        message = record.getMessage().lower()
+        
+        # Filter out technical solver logs
+        if any(x in message for x in [
+            'connected', 'disconnected', 'socket', 'transport', 
+            'polling', 'websocket', 'http', 'request', 'response',
+            'client', 'server', 'port', 'host', 'address',
+            'lookuptable', 'ida_search', 'cost_to_goal', 'pt_state',
+            'threshold', 'explored', 'nodes', 'took', 'nodes-per-sec',
+            'solution', 'steps', 'main()', 'fread', 'binary searching',
+            'solving via', 'ida_search_via_graph', 'prune-table',
+            'legal-moves', 'perfect-hash', 'pt-states'
+        ]):
+            return False
+            
+        # Only allow specific solver progress messages
+        if record.name.startswith('rubikscubennnsolver'):
+            # Only allow messages that indicate major solving phases
+            if not any(x in message for x in [
+                'centers staged', 'edges eoed', 'edges paired',
+                'centers solved', 'solve 3x3x3', 'solve completed'
+            ]):
+                return False
+            
+        return True
+
 app = Flask(__name__)
-CORS(app)  # Enable CORS for React app
+CORS(app, resources={r"/*": {"origins": "*"}}, supports_credentials=True)
+socketio = SocketIO(app, cors_allowed_origins="*", async_mode='threading', allow_unsafe_werkzeug=True)
+
+# Custom logging handler to capture logs and send via WebSocket
+class WebSocketLogHandler(logging.Handler):
+    def __init__(self, socketio_instance):
+        super().__init__()
+        self.socketio = socketio_instance
+        self.log_queue = queue.Queue()
+        self.last_message = None
+        self.last_timestamp = None
+        
+    def emit(self, record):
+        try:
+            # Apply the same filtering as WebSocketFilter
+            if not WebSocketFilter().filter(record):
+                return
+                
+            # Create message content for deduplication
+            message_content = f"{record.name}:{record.getMessage()}"
+            current_time = datetime.now()
+            
+            # Skip if this is the same message within 1 second
+            if (self.last_message == message_content and 
+                self.last_timestamp and 
+                (current_time - self.last_timestamp).total_seconds() < 1):
+                return
+                
+            # Update last message and timestamp
+            self.last_message = message_content
+            self.last_timestamp = current_time
+                
+            log_entry = {
+                'timestamp': current_time.isoformat(),
+                'level': record.levelname,
+                'logger': record.name,
+                'message': self.format(record),
+                'filename': record.filename,
+                'lineno': record.lineno
+            }
+            # Send log to all connected clients
+            self.socketio.emit('solver_log', log_entry)
+        except Exception as e:
+            print(f"Error sending log: {str(e)}")  # Fallback to print if logging fails
+
+# Set up WebSocket log handler
+ws_handler = WebSocketLogHandler(socketio)
+ws_handler.setLevel(logging.INFO)
+class RightAlignedTimestampFormatter(logging.Formatter):
+    def format(self, record):
+        message = record.getMessage()
+        return f"{message}"
+
+ws_handler.setFormatter(RightAlignedTimestampFormatter())
+
+# Add filter to root logger
+root_logger = logging.getLogger()
+root_logger.addFilter(WebSocketFilter())
+
+# Only add the handler to the root logger
+root_logger.addHandler(ws_handler)
+
+# Remove the handler from other loggers
+for logger_name in logging.root.manager.loggerDict:
+    if logger_name.startswith('rubikscubennnsolver'):
+        logger = logging.getLogger(logger_name)
+        logger.propagate = True  # Ensure logs propagate to root logger
 
 class CubeAPIWrapper:
     """Wrapper class to manage cube instances with real cube solver"""
     
     def __init__(self):
         self.cubes = {}
+        self.socketio = socketio  # Store socketio instance for sending messages
+    
+    def send_ui_message(self, message: str, level: str = "INFO"):
+        """Send a user-friendly message to the UI"""
+        try:
+            log_entry = {
+                'timestamp': datetime.now().isoformat(),
+                'level': level,
+                'message': message
+            }
+            self.socketio.emit('solver_log', log_entry)
+        except Exception as e:
+            print(f"Error sending UI message: {str(e)}")
     
     def create_cube(self, size: int, state: Optional[str] = None, order: str = "URFDLB", colormap: Optional[str] = None) -> str:
         """Create a new cube instance and return its ID"""
@@ -77,11 +193,11 @@ class CubeAPIWrapper:
                 'original_state': state
             }
             
-            logger.info(f"Created {size}x{size}x{size} cube with ID {cube_id}")
+            self.send_ui_message(f"Created {size}x{size}x{size} cube")
             return cube_id
             
         except Exception as e:
-            logger.error(f"Failed to create cube: {str(e)}")
+            self.send_ui_message(f"Failed to create cube: {str(e)}", "ERROR")
             raise ValueError(f"Failed to create cube: {str(e)}")
     
     def get_cube(self, cube_id: str):
@@ -113,6 +229,67 @@ class CubeAPIWrapper:
                 "D" * squares_per_face + 
                 "L" * squares_per_face + 
                 "B" * squares_per_face)
+
+    def solve_cube(self, cube_id: str, solution333: Optional[List[str]] = None):
+        """Solve the cube and send progress updates to UI"""
+        try:
+            cube = self.get_cube(cube_id)
+            
+            # Store original state for verification
+            original_state = cube.get_kociemba_string(True)
+            
+            # Send solving start event
+            self.send_ui_message("Starting cube solve process...")
+            
+            # Override cube's print methods to send UI messages
+            original_print_cube = cube.print_cube
+            original_print_cube_add_comment = cube.print_cube_add_comment
+            
+            def new_print_cube(title: str, print_positions: bool = False):
+                self.send_ui_message(title)
+                self.send_ui_message(cube.get_kociemba_string(True), "CUBE")
+                # Don't call original_print_cube to prevent duplicate output
+                return
+            
+            def new_print_cube_add_comment(desc: str, prev_solution_len: int):
+                total_len = cube.get_solution_len_minus_rotates(cube.solution)
+                solution_this_phase = cube.solution[prev_solution_len:]
+                solution_this_phase_len = cube.get_solution_len_minus_rotates(solution_this_phase)
+                message = f"{desc}: {solution_this_phase_len} steps, {total_len} total steps"
+                self.send_ui_message(message)
+                return original_print_cube_add_comment(desc, prev_solution_len)
+            
+            # Replace print methods
+            cube.print_cube = new_print_cube
+            cube.print_cube_add_comment = new_print_cube_add_comment
+            
+            # Solve the cube
+            cube.solve()
+            solution = cube.get_solution()
+            
+            # Restore original print methods
+            cube.print_cube = original_print_cube
+            cube.print_cube_add_comment = original_print_cube_add_comment
+            
+            # Send solving complete event
+            self.send_ui_message(f"Solve completed with {len(solution)} moves", "SUCCESS")
+            
+            return {
+                'success': True,
+                'cube_id': cube_id,
+                'solution': solution,
+                'solution_length': len(solution),
+                'original_state': original_state,
+                'solved_state': cube.get_kociemba_string(True),
+                'solved': cube.solved()
+            }
+            
+        except SolveError as e:
+            self.send_ui_message(f"Solve error: {str(e)}", "ERROR")
+            raise
+        except Exception as e:
+            self.send_ui_message(f"Error solving cube: {str(e)}", "ERROR")
+            raise
 
 # Initialize the wrapper
 cube_manager = CubeAPIWrapper()
@@ -212,29 +389,12 @@ def solve_cube(cube_id):
         elif solution333:
             solution333 = reverse_steps(solution333)
         
-        cube = cube_manager.get_cube(cube_id)
-        
-        # Store original state for verification
-        original_state = cube.get_kociemba_string(True)
-        
-        # Solve the cube
-        cube.solve()
-        solution = cube.get_solution()
-        return jsonify({
-            'success': True,
-            'cube_id': cube_id,
-            'solution': solution,
-            'solution_length': len(solution),
-            'original_state': original_state,
-            'solved_state': cube.get_kociemba_string(True),
-            'solved': cube.solved()
-        })
+        result = cube_manager.solve_cube(cube_id, solution333)
+        return jsonify(result)
     
     except SolveError as e:
-        logger.error(f"Solve error: {str(e)}")
         return jsonify({'error': f'Solve error: {str(e)}'}), 400
     except Exception as e:
-        logger.error(f"Error solving cube: {str(e)}")
         return jsonify({'error': str(e)}), 500
 
 @app.route('/cube/<cube_id>/reset', methods=['POST'])
@@ -253,52 +413,6 @@ def reset_cube(cube_id):
     
     except Exception as e:
         logger.error(f"Error resetting cube: {str(e)}")
-        return jsonify({'error': str(e)}), 400
-    """Apply random moves to scramble the cube"""
-    try:
-        data = request.get_json() or {}
-        num_moves = data.get('moves', 20)
-        
-        cube = cube_manager.get_cube(cube_id)
-        cube_info = cube_manager.get_cube_info(cube_id)
-        size = cube_info['size']
-        
-        # Generate appropriate moves for the cube size
-        if size == 2:
-            move_list = ["U", "R", "F", "U'", "R'", "F'", "U2", "R2", "F2"]
-        elif size == 3:
-            move_list = ["U", "D", "R", "L", "F", "B", "U'", "D'", "R'", "L'", "F'", "B'", 
-                        "U2", "D2", "R2", "L2", "F2", "B2"]
-        else:
-            move_list = ["U", "D", "R", "L", "F", "B", "U'", "D'", "R'", "L'", "F'", "B'",
-                        "U2", "D2", "R2", "L2", "F2", "B2", "Uw", "Dw", "Rw", "Lw", "Fw", "Bw",
-                        "Uw'", "Dw'", "Rw'", "Lw'", "Fw'", "Bw'"]
-        
-        import random
-        applied_moves = []
-        
-        for _ in range(num_moves):
-            move = random.choice(move_list)
-            try:
-                cube.rotate(move)
-                applied_moves.append(move)
-            except:
-                # If move fails, try a basic move
-                basic_moves = ["U", "D", "R", "L", "F", "B"]
-                move = random.choice(basic_moves)
-                cube.rotate(move)
-                applied_moves.append(move)
-        
-        return jsonify({
-            'success': True,
-            'cube_id': cube_id,
-            'moves_applied': applied_moves,
-            'state': cube.get_kociemba_string(True),
-            'solved': cube.solved()
-        })
-    
-    except Exception as e:
-        logger.error(f"Error scrambling cube: {str(e)}")
         return jsonify({'error': str(e)}), 400
 
 @app.route('/cube/<cube_id>/kociemba', methods=['GET'])
@@ -376,7 +490,15 @@ def not_found(error):
 def internal_error(error):
     return jsonify({'error': 'Internal server error'}), 500
 
+@socketio.on('connect')
+def handle_connect():
+    logger.info('Client connected to WebSocket')
+    emit('connected', {'message': 'Connected to solver logs'})
+
+@socketio.on('disconnect')
+def handle_disconnect():
+    logger.info('Client disconnected from WebSocket')
+
 if __name__ == '__main__':
-    logging.basicConfig(level=logging.INFO)
-    logger.info("Starting Rubik's Cube API Server")
-    app.run(host='0.0.0.0', port=5175, debug=True)
+    logger.info("Starting Rubik's Cube API Server with WebSocket support")
+    socketio.run(app, host='0.0.0.0', port=5175, debug=True, allow_unsafe_werkzeug=True)
