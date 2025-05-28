@@ -230,16 +230,22 @@ class CubeAPIWrapper:
                 "L" * squares_per_face + 
                 "B" * squares_per_face)
 
-    def solve_cube(self, cube_id: str, solution333: Optional[List[str]] = None):
+    def solve_cube(self, cube_id: str, solution333: Optional[List[str]] = None, solver_type: str = "Kociemba"):
         """Solve the cube and send progress updates to UI"""
         try:
             cube = self.get_cube(cube_id)
+            cube_info = self.get_cube_info(cube_id)
+            cube_size = cube_info['size']
+            
+            # Check if solver type is supported for this cube size
+            if solver_type != "Kociemba" and cube_size > 3:
+                raise ValueError(f"{solver_type} solver only supports 2x2x2 and 3x3x3 cubes")
             
             # Store original state for verification
             original_state = cube.get_kociemba_string(True)
             
             # Send solving start event
-            self.send_ui_message("Starting cube solve process...")
+            self.send_ui_message(f"Starting {solver_type} solve for {cube_size}x{cube_size}x{cube_size} cube...")
             
             # Override cube's print methods to send UI messages
             original_print_cube = cube.print_cube
@@ -263,8 +269,9 @@ class CubeAPIWrapper:
             cube.print_cube = new_print_cube
             cube.print_cube_add_comment = new_print_cube_add_comment
             
-            # Solve the cube
+            # Solve the cube based on solver type
             cube.solve()
+            
             solution = cube.get_solution()
             
             # Restore original print methods
@@ -272,7 +279,7 @@ class CubeAPIWrapper:
             cube.print_cube_add_comment = original_print_cube_add_comment
             
             # Send solving complete event
-            self.send_ui_message(f"Solve completed with {len(solution)} moves", "SUCCESS")
+            self.send_ui_message(f"{solver_type} solve completed with {len(solution)} moves", "SUCCESS")
             
             return {
                 'success': True,
@@ -383,13 +390,14 @@ def solve_cube(cube_id):
     try:
         data = request.get_json() or {}
         solution333 = data.get('solution333', [])
+        solver_type = data.get('type', 'Kociemba')
         
         if isinstance(solution333, str):
             solution333 = reverse_steps(solution333.split())
         elif solution333:
             solution333 = reverse_steps(solution333)
-        
-        result = cube_manager.solve_cube(cube_id, solution333)
+            
+        result = cube_manager.solve_cube(cube_id, solution333, solver_type)
         return jsonify(result)
     
     except SolveError as e:
